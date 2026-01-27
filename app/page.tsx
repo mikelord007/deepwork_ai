@@ -114,8 +114,9 @@ export default function HomePage() {
               <a href="#faq" className="text-sm text-muted hover:text-foreground transition-colors">FAQ</a>
             </div>
 
-            <button className="btn-secondary text-sm">
-              Get Early Access
+            <button className="btn-secondary text-xs sm:text-sm px-3 sm:px-5">
+              <span className="hidden sm:inline">Get Early Access</span>
+              <span className="sm:hidden">Join</span>
             </button>
           </div>
         </div>
@@ -127,7 +128,7 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left: Copy */}
             <div className="space-y-8">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
                 Transform your{" "}
                 <span className="text-primary">focus habits</span>{" "}
                 with deepwork.ai
@@ -152,28 +153,28 @@ export default function HomePage() {
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-4 gap-4 pt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
                 {stats.map((stat) => (
                   <div key={stat.label}>
-                    <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-foreground">{stat.value}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{stat.label}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Right: Phone Mockup */}
-            <div className="relative flex justify-center lg:justify-end">
+            <div className="relative flex justify-center lg:justify-end pb-16 sm:pb-0">
               {/* Decorative clouds/blobs */}
-              <div className="absolute -top-8 right-0 w-20 h-12 bg-gray-200/50 rounded-full blur-sm" />
-              <div className="absolute -top-4 right-24 w-14 h-8 bg-gray-200/40 rounded-full blur-sm" />
-              <div className="absolute top-8 -right-4 w-16 h-10 bg-gray-200/30 rounded-full blur-sm" />
+              <div className="absolute -top-8 right-0 w-20 h-12 bg-gray-200/50 rounded-full blur-sm hidden sm:block" />
+              <div className="absolute -top-4 right-24 w-14 h-8 bg-gray-200/40 rounded-full blur-sm hidden sm:block" />
+              <div className="absolute top-8 -right-4 w-16 h-10 bg-gray-200/30 rounded-full blur-sm hidden sm:block" />
 
               {/* Phone frame */}
-              <div className="relative w-72 bg-foreground rounded-[3rem] p-3 shadow-float">
-                <div className="bg-background rounded-[2.5rem] overflow-hidden">
+              <div className="relative w-64 sm:w-72 bg-foreground rounded-[2.5rem] sm:rounded-[3rem] p-2 sm:p-3 shadow-float">
+                <div className="bg-background rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden">
                   {/* Status bar */}
-                  <div className="flex items-center justify-between px-6 py-3 text-xs text-muted">
+                  <div className="flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 text-xs text-muted">
                     <span>9:41</span>
                     <div className="flex items-center gap-1">
                       <div className="w-4 h-2 bg-foreground/20 rounded-sm" />
@@ -228,14 +229,14 @@ export default function HomePage() {
               </div>
 
               {/* Mascot placeholder */}
-              <div className="absolute -bottom-8 -left-4 lg:left-8">
-                <div className="card !p-3 !rounded-2xl flex items-center gap-3 w-56">
-                  <div className="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center text-2xl">
+              <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 lg:left-8">
+                <div className="card !p-2 sm:!p-3 !rounded-xl sm:!rounded-2xl flex items-center gap-2 sm:gap-3 w-48 sm:w-56">
+                  <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-full bg-primary-light flex items-center justify-center text-xl sm:text-2xl">
                     🧠
                   </div>
                   <div>
-                    <p className="font-semibold text-sm">Focus companion</p>
-                    <p className="text-xs text-muted">Thrives on your deep work!</p>
+                    <p className="font-semibold text-xs sm:text-sm">Focus companion</p>
+                    <p className="text-[10px] sm:text-xs text-muted">Thrives on your deep work!</p>
                   </div>
                 </div>
               </div>
@@ -295,8 +296,8 @@ export default function HomePage() {
               </div>
 
               {/* Decorative mascot */}
-              <div className="absolute -right-4 bottom-20 w-24 h-24">
-                <div className="w-full h-full rounded-full bg-primary-light flex items-center justify-center text-4xl">
+              <div className="absolute -right-2 sm:-right-4 bottom-16 sm:bottom-20 w-16 sm:w-24 h-16 sm:h-24 hidden sm:flex">
+                <div className="w-full h-full rounded-full bg-primary-light flex items-center justify-center text-2xl sm:text-4xl">
                   🎯
                 </div>
               </div>
@@ -409,7 +410,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl lg:text-4xl font-bold tracking-tight">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
                 Transform your focus habits with{" "}
                 <span className="text-primary">deepwork.ai</span>
               </h2>
@@ -422,17 +423,17 @@ export default function HomePage() {
                   Get Early Access
                   <ArrowRight className="w-4 h-4" />
                 </button>
-                <button className="btn-secondary !border-gray-600 !text-white hover:!bg-gray-800">
+                <button className="inline-flex items-center justify-center gap-2 border border-gray-600 text-white font-medium rounded-full px-5 py-2.5 transition-all duration-200 hover:bg-gray-800">
                   I want to co-build
                 </button>
               </div>
             </div>
 
             {/* App preview placeholder */}
-            <div className="flex justify-center gap-4">
-              <div className="w-32 h-56 bg-gray-800 rounded-3xl" />
-              <div className="w-36 h-64 bg-gray-700 rounded-3xl -mt-4" />
-              <div className="w-28 h-48 bg-gray-800 rounded-3xl mt-4" />
+            <div className="hidden sm:flex justify-center gap-3 lg:gap-4">
+              <div className="w-24 lg:w-32 h-44 lg:h-56 bg-gray-800 rounded-2xl lg:rounded-3xl" />
+              <div className="w-28 lg:w-36 h-52 lg:h-64 bg-gray-700 rounded-2xl lg:rounded-3xl -mt-4" />
+              <div className="w-20 lg:w-28 h-36 lg:h-48 bg-gray-800 rounded-2xl lg:rounded-3xl mt-4" />
             </div>
           </div>
         </div>

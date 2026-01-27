@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-background text-foreground antialiased font-body;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-heading;
+}
+
+.card {
+  @apply bg-white rounded-4xl shadow-card p-6 transition-all duration-200;
+}
+
+.card:hover {
+  @apply shadow-card-hover -translate-y-0.5;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 bg-primary text-white font-semibold rounded-full px-6 py-3 shadow-soft transition-all duration-200;
+}
+
+.btn-primary:hover {
+  @apply bg-primary-dark shadow-card -translate-y-0.5;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 border border-gray-200 bg-white text-foreground font-medium rounded-full px-5 py-2.5 transition-all duration-200;
+}
+
+.btn-secondary:hover {
+  @apply border-gray-300 bg-gray-50;
+}
+
+.badge {
+  @apply inline-flex items-center gap-1.5 bg-primary-light text-primary font-medium text-xs rounded-full px-3 py-1;
+}
+
+/* Soft blob background effects */
+.blob-purple {
+  @apply absolute rounded-full bg-primary/10 blur-3xl;
+}
+
+.blob-green {
+  @apply absolute rounded-full bg-accent/20 blur-3xl;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Section spacing */
+.section {
+  @apply py-20 lg:py-28;
+}
+
+.section-header {
+  @apply text-center max-w-2xl mx-auto mb-12 lg:mb-16;
+}
+
+.section-title {
+  @apply text-3xl lg:text-4xl font-bold tracking-tight text-foreground;
+}
+
+.section-subtitle {
+  @apply mt-4 text-muted text-base lg:text-lg;
+}

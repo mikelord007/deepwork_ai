@@ -164,7 +164,7 @@ function DashboardContent() {
       {/* ===== Main Content ===== */}
       {/* Mobile: no margin, Desktop: margin for sidebar */}
       <main
-        className={`min-h-screen transition-all duration-200 ${
+        className={`transition-all duration-200 ${
           sidebarExpanded ? "md:ml-52" : "md:ml-16"
         }`}
       >

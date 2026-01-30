@@ -5,9 +5,12 @@ import {
   AlertTriangle,
   BarChart3,
   Home,
+  Minus,
   Pause,
   Play,
+  Plus,
   RotateCcw,
+  Volume2,
   X,
   Zap
 } from "lucide-react";
@@ -17,15 +20,25 @@ import {
   logSessionEvent,
   logDistraction,
 } from "@/lib/analytics";
+import {
+  playNotificationSoundRepeating,
+  previewSound,
+  getSavedSound,
+  saveSound,
+  SOUND_OPTIONS,
+  type SoundType,
+} from "@/lib/sounds";
 
-const POMODORO_DURATION = 25 * 60; // 25 minutes in seconds
+const DEFAULT_DURATION = 25 * 60; // 25 minutes in seconds
 const BREAK_DURATION = 5 * 60; // 5 minutes in seconds
+const DURATION_PRESETS = [15, 25, 45, 60, 90]; // minutes
 
 type SessionState = "idle" | "focusing" | "paused" | "break" | "abandoned";
 
 export default function DashboardPage() {
   const [sessionState, setSessionState] = useState<SessionState>("idle");
-  const [timeLeft, setTimeLeft] = useState(POMODORO_DURATION);
+  const [focusDuration, setFocusDuration] = useState(DEFAULT_DURATION); // customizable
+  const [timeLeft, setTimeLeft] = useState(DEFAULT_DURATION);
   const [distractions, setDistractions] = useState<string[]>([]);
   const [showDistractionModal, setShowDistractionModal] = useState(false);
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
@@ -35,6 +48,54 @@ export default function DashboardPage() {
   const pauseCountRef = useRef(0);
   const sessionStartTimeRef = useRef<number | null>(null);
 
+  // Sound settings
+  const [notificationSound, setNotificationSound] = useState<SoundType>("bell");
+  
+  // Dropdown states
+  const [showDurationDropdown, setShowDurationDropdown] = useState(false);
+  const [showSoundDropdown, setShowSoundDropdown] = useState(false);
+  const stopSoundPreviewRef = useRef<(() => void) | null>(null);
+
+  // Load saved sound preference
+  useEffect(() => {
+    setNotificationSound(getSavedSound());
+  }, []);
+
+  const handleSoundChange = (sound: SoundType) => {
+    // Stop any current repeating preview
+    if (stopSoundPreviewRef.current) {
+      stopSoundPreviewRef.current();
+      stopSoundPreviewRef.current = null;
+    }
+    setNotificationSound(sound);
+    saveSound(sound);
+    // Play new sound repeatedly for preview
+    if (sound !== "none") {
+      stopSoundPreviewRef.current = previewSound(sound);
+    }
+  };
+
+  const closeSoundDropdown = () => {
+    if (stopSoundPreviewRef.current) {
+      stopSoundPreviewRef.current();
+      stopSoundPreviewRef.current = null;
+    }
+    setShowSoundDropdown(false);
+  };
+
+  // Duration adjustment functions
+  const adjustDuration = (deltaMinutes: number) => {
+    const newDuration = Math.max(1 * 60, Math.min(120 * 60, focusDuration + deltaMinutes * 60));
+    setFocusDuration(newDuration);
+    setTimeLeft(newDuration);
+  };
+
+  const setPresetDuration = (minutes: number) => {
+    const newDuration = minutes * 60;
+    setFocusDuration(newDuration);
+    setTimeLeft(newDuration);
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -43,10 +104,10 @@ export default function DashboardPage() {
 
   const progress = sessionState === "break" 
     ? ((BREAK_DURATION - timeLeft) / BREAK_DURATION) * 100
-    : ((POMODORO_DURATION - timeLeft) / POMODORO_DURATION) * 100;
+    : ((focusDuration - timeLeft) / focusDuration) * 100;
 
   const getTimeElapsed = () => {
-    return POMODORO_DURATION - timeLeft;
+    return focusDuration - timeLeft;
   };
 
   const handleStart = async () => {
@@ -54,8 +115,8 @@ export default function DashboardPage() {
     sessionStartTimeRef.current = Date.now();
     pauseCountRef.current = 0;
     
-    // Create session in Supabase
-    const session = await createSession(POMODORO_DURATION);
+    // Create session in Supabase with custom duration
+    const session = await createSession(focusDuration);
     if (session) {
       setCurrentSessionId(session.id);
     }
@@ -89,7 +150,7 @@ export default function DashboardPage() {
 
   const handleReset = () => {
     setSessionState("idle");
-    setTimeLeft(POMODORO_DURATION);
+    setTimeLeft(focusDuration);
     setDistractions([]);
     setCurrentSessionId(null);
     pauseCountRef.current = 0;
@@ -173,8 +234,8 @@ export default function DashboardPage() {
       
       await logSessionEvent(currentSessionId, "session_abandoned", {
         actual_duration_seconds: actualDuration,
-        planned_duration_seconds: POMODORO_DURATION,
-        completion_percentage: (actualDuration / POMODORO_DURATION) * 100,
+        planned_duration_seconds: focusDuration,
+        completion_percentage: (actualDuration / focusDuration) * 100,
         distractions_count: distractions.length,
         total_pauses: pauseCountRef.current,
       });
@@ -182,6 +243,9 @@ export default function DashboardPage() {
   };
 
   const startBreak = useCallback(async () => {
+    // Play notification sound repeatedly when focus session completes
+    playNotificationSoundRepeating(notificationSound);
+    
     setSessionState("break");
     setTimeLeft(BREAK_DURATION);
     
@@ -190,20 +254,20 @@ export default function DashboardPage() {
       await updateSession(currentSessionId, {
         status: "completed",
         ended_at: new Date().toISOString(),
-        actual_duration_seconds: POMODORO_DURATION,
+        actual_duration_seconds: focusDuration,
         total_distractions: distractions.length,
         total_pauses: pauseCountRef.current,
       });
       
       await logSessionEvent(currentSessionId, "session_completed", {
-        actual_duration_seconds: POMODORO_DURATION,
+        actual_duration_seconds: focusDuration,
         distractions_count: distractions.length,
         total_pauses: pauseCountRef.current,
       });
       
       await logSessionEvent(currentSessionId, "break_started", {});
     }
-  }, [currentSessionId, distractions.length]);
+  }, [currentSessionId, distractions.length, focusDuration, notificationSound]);
 
   // Timer effect
   useEffect(() => {
@@ -216,12 +280,13 @@ export default function DashboardPage() {
             if (sessionState === "focusing") {
               startBreak();
             } else {
-              // Break completed
+              // Break completed - play sound repeatedly
+              playNotificationSoundRepeating(notificationSound);
               if (currentSessionId) {
                 logSessionEvent(currentSessionId, "break_completed", {});
               }
               setSessionState("idle");
-              return POMODORO_DURATION;
+              return focusDuration;
             }
             return prev;
           }
@@ -231,7 +296,7 @@ export default function DashboardPage() {
     }
 
     return () => clearInterval(interval);
-  }, [sessionState, startBreak, currentSessionId]);
+  }, [sessionState, startBreak, currentSessionId, focusDuration, notificationSound]);
 
   // Track page visibility (user switching tabs during focus)
   useEffect(() => {
@@ -300,7 +365,7 @@ export default function DashboardPage() {
             {sessionState === "abandoned" && "Session ended"}
           </h1>
           <p className="mt-2 text-muted">
-            {sessionState === "idle" && "Start a 25-minute focus session"}
+            {sessionState === "idle" && `Start a ${Math.floor(focusDuration / 60)}-minute focus session`}
             {sessionState === "focusing" && "Stay focused, you got this!"}
             {sessionState === "paused" && "Resume when you're ready"}
             {sessionState === "break" && "You've earned it! Stretch, breathe."}
@@ -308,11 +373,11 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Timer Card */}
-        <div className="card !p-8 sm:!p-12 text-center relative overflow-hidden">
-          {/* Animated background pulse when focusing */}
+        {/* Timer Card - overflow-visible so dropdowns aren't clipped */}
+        <div className="card !p-8 sm:!p-12 text-center relative overflow-visible">
+          {/* Animated background pulse when focusing - overflow-hidden keeps pulse inside card */}
           {sessionState === "focusing" && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden rounded-[inherit]">
               <div className="w-64 h-64 rounded-full bg-primary/5 animate-pulse-slow" />
               <div className="absolute w-48 h-48 rounded-full bg-primary/10 animate-pulse-slower" />
             </div>
@@ -359,6 +424,122 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+
+          {/* Settings Row - Duration & Sound (only shown when idle) */}
+          {sessionState === "idle" && (
+            <div className="mb-6 flex items-center justify-center gap-2">
+              {/* Duration: minus button */}
+              <button
+                onClick={() => adjustDuration(-5)}
+                className="w-8 h-8 rounded-full bg-white shadow-soft hover:shadow-card flex items-center justify-center transition-all disabled:opacity-50"
+                disabled={focusDuration <= 60}
+                aria-label="Decrease duration by 5 minutes"
+              >
+                <Minus className="w-3 h-3 text-muted" />
+              </button>
+
+              {/* Duration dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowDurationDropdown(!showDurationDropdown);
+                    setShowSoundDropdown(false);
+                  }}
+                  className="flex items-center gap-2 bg-white shadow-soft hover:shadow-card rounded-full px-4 py-2 text-sm font-medium text-foreground transition-all"
+                >
+                  <span>{Math.floor(focusDuration / 60)} min</span>
+                  <svg className={`w-4 h-4 text-muted transition-transform ${showDurationDropdown ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {showDurationDropdown && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowDurationDropdown(false)} />
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white rounded-2xl shadow-float p-2 z-20 min-w-[120px]">
+                      <div className="grid grid-cols-2 gap-1">
+                        {[1, 5, 10, 15, 20, 25, 30, 45, 60, 90, 120].map((min) => (
+                          <button
+                            key={min}
+                            onClick={() => {
+                              setPresetDuration(min);
+                              setShowDurationDropdown(false);
+                            }}
+                            className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                              focusDuration === min * 60
+                                ? "bg-primary text-white"
+                                : "hover:bg-primary-light text-foreground"
+                            }`}
+                          >
+                            {min}m
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Duration: plus button */}
+              <button
+                onClick={() => adjustDuration(5)}
+                className="w-8 h-8 rounded-full bg-white shadow-soft hover:shadow-card flex items-center justify-center transition-all disabled:opacity-50"
+                disabled={focusDuration >= 120 * 60}
+                aria-label="Increase duration by 5 minutes"
+              >
+                <Plus className="w-3 h-3 text-muted" />
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-6 bg-gray-200 mx-2" />
+
+              {/* Sound dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowSoundDropdown(!showSoundDropdown);
+                    setShowDurationDropdown(false);
+                  }}
+                  className="flex items-center gap-2 bg-white shadow-soft hover:shadow-card rounded-full px-3 py-2 text-sm font-medium text-foreground transition-all"
+                >
+                  <Volume2 className="w-4 h-4 text-primary" />
+                  <span>{SOUND_OPTIONS.find(s => s.value === notificationSound)?.label}</span>
+                  <svg className={`w-4 h-4 text-muted transition-transform ${showSoundDropdown ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {showSoundDropdown && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={closeSoundDropdown} />
+                    <div className="absolute top-full right-0 mt-2 bg-white rounded-2xl shadow-float p-2 z-20 min-w-[140px]">
+                      {SOUND_OPTIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => {
+                            handleSoundChange(option.value);
+                            setShowSoundDropdown(false);
+                          }}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all text-left ${
+                            notificationSound === option.value
+                              ? "bg-primary text-white"
+                              : "hover:bg-primary-light text-foreground"
+                          }`}
+                        >
+                          {option.value === "none" ? (
+                            <span className="w-4 h-4 flex items-center justify-center text-xs">🔇</span>
+                          ) : (
+                            <span className="w-4 h-4 flex items-center justify-center text-xs">🔔</span>
+                          )}
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Control Buttons */}
           <div className="flex flex-wrap items-center justify-center gap-4">

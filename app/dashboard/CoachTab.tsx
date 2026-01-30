@@ -25,6 +25,7 @@ interface SpeechRecognitionInstance extends EventTarget {
   lang: string;
   start(): void;
   stop(): void;
+  onstart: (() => void) | null;
   onresult: ((e: SpeechRecognitionEvent) => void) | null;
   onerror: ((e: SpeechRecognitionErrorEvent) => void) | null;
   onend: (() => void) | null;
@@ -62,8 +63,11 @@ export default function CoachTab() {
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [showMicPermissionPrompt, setShowMicPermissionPrompt] = useState(false);
+  const [micPermissionDenied, setMicPermissionDenied] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const baseInputRef = useRef("");
+  const hasMicPermissionBeenGrantedRef = useRef(false);
 
   // Detect speech support after mount to avoid hydration mismatch (window is undefined on server)
   useEffect(() => {
@@ -78,6 +82,13 @@ export default function CoachTab() {
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-US";
+
+    recognition.onstart = () => {
+      hasMicPermissionBeenGrantedRef.current = true;
+      setShowMicPermissionPrompt(false);
+      setMicPermissionDenied(false);
+      setIsListening(true);
+    };
 
     recognition.onresult = (e: SpeechRecognitionEvent) => {
       let fullTranscript = "";
@@ -102,6 +113,10 @@ export default function CoachTab() {
     };
 
     recognition.onerror = (e: SpeechRecognitionErrorEvent) => {
+      if (e.error === "not-allowed" || e.error === "permission-denied") {
+        setShowMicPermissionPrompt(false);
+        setMicPermissionDenied(true);
+      }
       if (e.error !== "aborted") {
         setIsListening(false);
       }
@@ -126,7 +141,10 @@ export default function CoachTab() {
       return;
     }
     baseInputRef.current = input;
-    setIsListening(true);
+    if (!hasMicPermissionBeenGrantedRef.current) {
+      setShowMicPermissionPrompt(true);
+      setMicPermissionDenied(false);
+    }
     rec.start();
   };
 
@@ -202,7 +220,18 @@ export default function CoachTab() {
               isListening ? "border-accent/50 ring-1 ring-accent/20" : "border-gray-200"
             }`}
           />
-          {/* Voice listening indicator - waveform bars */}
+          {/* Mic permission prompt when we need access and user clicked mic */}
+          {showMicPermissionPrompt && !isListening && (
+            <div className="absolute left-4 right-14 bottom-4 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+              We need access to your microphone. Please allow it in your browser so we can start using the microphone.
+            </div>
+          )}
+          {micPermissionDenied && !isListening && (
+            <div className="absolute left-4 right-14 bottom-4 rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-800">
+              Microphone access was denied. Please allow it in your browser settings to use voice input.
+            </div>
+          )}
+          {/* Voice listening indicator - waveform bars (only when actually listening) */}
           {isListening && (
             <div className="absolute left-4 bottom-4 flex items-end gap-0.5 h-5 pointer-events-none" aria-hidden>
               {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (

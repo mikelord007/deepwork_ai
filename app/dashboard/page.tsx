@@ -44,9 +44,7 @@ function DashboardContent() {
         <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100">
           <div className="flex items-center justify-between px-4 h-14">
             <a href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-soft">
-                <span className="text-white text-xs font-bold">dw</span>
-              </div>
+              <img src="/logo.svg" alt="" className="w-8 h-8 flex-shrink-0" />
               <span className="font-heading font-semibold text-foreground text-sm">
                 deepwork.ai
               </span>
@@ -95,9 +93,7 @@ function DashboardContent() {
         {/* Logo */}
         <div className="h-16 flex items-center justify-center border-b border-gray-100 px-3">
           <a href="/" className="flex items-center gap-2 overflow-hidden">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-soft flex-shrink-0">
-              <span className="text-white text-sm font-bold">dw</span>
-            </div>
+            <img src="/logo.svg" alt="" className="w-9 h-9 flex-shrink-0" />
             {sidebarExpanded && (
               <span className="font-heading font-semibold text-foreground whitespace-nowrap">
                 deepwork.ai

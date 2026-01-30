@@ -9,7 +9,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "deepwork.ai – Data‑driven focus coach",
   description:
-    "deepwork.ai is an AI focus coach that understands how your mind works, shows what builds or destroys your focus, and gives personalized guidance to improve it over time."
+    "deepwork.ai is an AI focus coach that understands how your mind works, shows what builds or destroys your focus, and gives personalized guidance to improve it over time.",
+  icons: { icon: "/logo.svg" },
 };
 
 export default function RootLayout({

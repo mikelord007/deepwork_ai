@@ -2,7 +2,7 @@ import {
   ArrowRight,
   BarChart3,
   Brain,
-  Calendar,
+  Calendar, 
   Clock,
   Lightbulb,
   Play,
@@ -101,9 +101,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-soft">
-                <span className="text-white text-sm font-bold">dw</span>
-              </div>
+              <img src="/logo.svg" alt="" className="w-9 h-9 flex-shrink-0" />
               <span className="font-heading font-semibold text-foreground">deepwork.ai</span>
             </div>
 
@@ -442,9 +440,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center">
-                <span className="text-white text-xs font-bold">dw</span>
-              </div>
+              <img src="/logo.svg" alt="" className="w-8 h-8 flex-shrink-0" />
               <span className="text-sm">deepwork.ai · Data-driven focus coach</span>
             </div>
 

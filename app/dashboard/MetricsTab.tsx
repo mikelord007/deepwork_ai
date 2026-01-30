@@ -109,10 +109,87 @@ export default function MetricsTab() {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-            <p className="text-muted">Loading your metrics...</p>
+        <div className="space-y-6 animate-pulse">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="card !p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gray-200" />
+                  <div className="h-4 w-20 rounded bg-gray-200" />
+                </div>
+                <div className="h-9 w-16 rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-gray-50 rounded-2xl p-4">
+                <div className="h-3 w-16 rounded bg-gray-200 mb-2" />
+                <div className="h-6 w-12 rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+          <div className="grid lg:grid-cols-2 gap-6">
+            <div className="card">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="h-5 w-5 rounded bg-gray-200" />
+                <div className="h-5 w-24 rounded bg-gray-200" />
+              </div>
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="h-3 w-12 rounded bg-gray-200 flex-shrink-0" />
+                    <div className="flex-1 h-6 rounded-full bg-gray-200" />
+                    <div className="h-3 w-8 rounded bg-gray-200" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="card">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="h-5 w-5 rounded bg-gray-200" />
+                <div className="h-5 w-32 rounded bg-gray-200" />
+              </div>
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="h-4 flex-1 rounded bg-gray-200" />
+                    <div className="h-2 w-16 rounded-full bg-gray-200 flex-shrink-0" />
+                    <div className="h-3 w-8 rounded bg-gray-200 flex-shrink-0" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <div className="h-5 w-5 rounded bg-gray-200" />
+                <div className="h-5 w-40 rounded bg-gray-200" />
+              </div>
+            </div>
+            <div className="flex items-end gap-1 h-32">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24].map((i) => (
+                <div key={i} className="flex-1 rounded-t bg-gray-200" style={{ height: `${30 + (i % 5) * 15}%` }} />
+              ))}
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="h-5 w-5 rounded bg-gray-200" />
+              <div className="h-5 w-32 rounded bg-gray-200" />
+            </div>
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
+                  <div className="w-10 h-10 rounded-xl bg-gray-200" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-28 rounded bg-gray-200" />
+                    <div className="h-3 w-36 rounded bg-gray-200" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ) : metrics && metrics.totalSessions === 0 ? (

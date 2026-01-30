@@ -1,3 +1,4 @@
+import CoBuildButton from "./components/CoBuildButton";
 import {
   ArrowRight,
   BarChart3,
@@ -419,9 +420,7 @@ export default function HomePage() {
                   Login
                   <ArrowRight className="w-4 h-4" />
                 </a>
-                <button className="inline-flex items-center justify-center gap-2 border border-gray-600 text-white font-medium rounded-full px-5 py-2.5 transition-all duration-200 hover:bg-gray-800">
-                  I want to co-build
-                </button>
+                <CoBuildButton />
               </div>
             </div>
 

@@ -114,10 +114,9 @@ export default function HomePage() {
               <a href="#faq" className="text-sm text-muted hover:text-foreground transition-colors">FAQ</a>
             </div>
 
-            <button className="btn-secondary text-xs sm:text-sm px-3 sm:px-5">
-              <span className="hidden sm:inline">Get Early Access</span>
-              <span className="sm:hidden">Join</span>
-            </button>
+            <a href="/dashboard" className="btn-secondary text-xs sm:text-sm px-3 sm:px-5">
+              Login
+            </a>
           </div>
         </div>
       </nav>
@@ -140,10 +139,10 @@ export default function HomePage() {
               </p>
 
               <div className="flex flex-wrap items-center gap-4">
-                <button className="btn-primary text-base">
-                  Start Free Trial
+                <a href="/dashboard" className="btn-primary text-base inline-flex">
+                  Login
                   <ArrowRight className="w-4 h-4" />
-                </button>
+                </a>
                 <button className="inline-flex items-center gap-2 text-muted hover:text-foreground transition-colors">
                   <div className="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center">
                     <Play className="w-4 h-4 text-primary fill-primary" />
@@ -171,7 +170,7 @@ export default function HomePage() {
               <div className="absolute top-8 -right-4 w-16 h-10 bg-gray-200/30 rounded-full blur-sm hidden sm:block" />
 
               {/* Phone frame */}
-              <div className="relative w-64 sm:w-72 bg-foreground rounded-[2.5rem] sm:rounded-[3rem] p-2 sm:p-3 shadow-float">
+              <div className="relative w-64 sm:w-72 bg-foreground ring-1 ring-black rounded-[2.5rem] sm:rounded-[3rem] p-2 sm:p-3 shadow-float">
                 <div className="bg-background rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden">
                   {/* Status bar */}
                   <div className="flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 text-xs text-muted">
@@ -266,7 +265,7 @@ export default function HomePage() {
             {/* Left: Phone with UI */}
             <div className="relative order-2 lg:order-1">
               {/* Phone mockup */}
-              <div className="relative w-64 mx-auto bg-foreground rounded-[3rem] p-3 shadow-float">
+              <div className="relative w-64 mx-auto bg-foreground ring-1 ring-black rounded-[3rem] p-3 shadow-float">
                 <div className="bg-background rounded-[2.5rem] overflow-hidden">
                   <div className="px-4 py-6 space-y-3">
                     <div className="flex items-center justify-between mb-4">
@@ -415,14 +414,13 @@ export default function HomePage() {
                 <span className="text-primary">deepwork.ai</span>
               </h2>
               <p className="mt-4 text-gray-300 text-lg">
-                Join the early access program and help shape the future of 
-                AI-powered focus coaching.
+                Sign in to start your focus sessions and track your progress.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
-                <button className="btn-primary">
-                  Get Early Access
+                <a href="/dashboard" className="btn-primary inline-flex">
+                  Login
                   <ArrowRight className="w-4 h-4" />
-                </button>
+                </a>
                 <button className="inline-flex items-center justify-center gap-2 border border-gray-600 text-white font-medium rounded-full px-5 py-2.5 transition-all duration-200 hover:bg-gray-800">
                   I want to co-build
                 </button>

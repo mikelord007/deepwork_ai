@@ -16,7 +16,9 @@ export type SessionEventType =
   | "abandon_modal_dismissed"
   | "timer_viewed"
   | "page_focused"
-  | "page_blurred";
+  | "page_blurred"
+  | "theme_changed"
+  | "sound_toggled";
 
 export interface SessionEventData {
   distraction_type?: string;
@@ -141,42 +143,4 @@ export async function logDistraction(
     time_elapsed_seconds: timeElapsedSeconds,
     time_remaining_seconds: timeRemainingSeconds,
   });
-}
-
-// Track page visibility changes (user switching tabs)
-export function trackPageVisibility(
-  sessionId: string | null,
-  timeElapsedSeconds: number
-) {
-  if (typeof document === "undefined") return;
-
-  const handleVisibilityChange = () => {
-    if (document.hidden) {
-      logSessionEvent(sessionId, "page_blurred", {
-        time_elapsed_seconds: timeElapsedSeconds,
-      });
-    } else {
-      logSessionEvent(sessionId, "page_focused", {
-        time_elapsed_seconds: timeElapsedSeconds,
-      });
-    }
-  };
-
-  document.addEventListener("visibilitychange", handleVisibilityChange);
-  
-  return () => {
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
-  };
-}
-
-// Log mouse idle time (user not interacting)
-export async function logInteractionPattern(
-  sessionId: string,
-  pattern: {
-    idle_periods: number[];
-    total_interactions: number;
-    avg_time_between_interactions: number;
-  }
-) {
-  await logSessionEvent(sessionId, "timer_viewed", pattern);
 }

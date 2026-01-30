@@ -6,6 +6,8 @@
 
 :root {
   color-scheme: light;
+  --background: #FAFAFA;
+  --foreground: #1A1A1A;
 }
 
 body {
@@ -17,7 +19,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .card {
-  @apply bg-white rounded-3xl sm:rounded-4xl shadow-card p-4 sm:p-6 transition-all duration-200;
+  @apply bg-white rounded-3xl sm:rounded-4xl shadow-card border border-gray-100 p-4 sm:p-6 transition-all duration-200;
 }
 
 .card:hover {
@@ -130,6 +132,21 @@ body {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+/* Voice input waveform bars */
+@keyframes voice-bar {
+  0%, 100% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.animate-voice-bar {
+  animation: voice-bar 0.6s ease-in-out infinite;
+  transform-origin: bottom;
 }
 
 .animate-pulse-slow {

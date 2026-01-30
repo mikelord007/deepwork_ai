@@ -96,7 +96,7 @@ function playSuccess() {
   playTone(784, 0.4, now + 0.2, 0.35, "sine");
 }
 
-// Play the sound once (used internally and for first tick of repeat)
+// Play the sound once (used internally for repeat)
 function playSoundOnce(soundType: SoundType) {
   if (soundType === "none") return;
 
@@ -119,11 +119,6 @@ function playSoundOnce(soundType: SoundType) {
       playSuccess();
       break;
   }
-}
-
-// Main function to play selected sound once (legacy / single play)
-export function playNotificationSound(soundType: SoundType) {
-  playSoundOnce(soundType);
 }
 
 const REPEAT_DURATION_MS = 15000; // 15 seconds when timer goes off

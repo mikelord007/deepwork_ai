@@ -363,7 +363,7 @@ export default function FocusTab() {
                 cy="100"
                 r="90"
                 fill="none"
-                stroke="#E5E7EB"
+                className="stroke-gray-200 dark:stroke-gray-700"
                 strokeWidth="8"
               />
               {/* Progress circle */}
@@ -402,7 +402,7 @@ export default function FocusTab() {
               {/* Duration: minus button */}
               <button
                 onClick={() => adjustDuration(-5)}
-                className="w-8 h-8 rounded-full bg-white shadow-soft hover:shadow-card flex items-center justify-center transition-all disabled:opacity-50"
+                className="w-8 h-8 rounded-full bg-white dark:bg-gray-800 shadow-soft hover:shadow-card flex items-center justify-center transition-all disabled:opacity-50"
                 disabled={focusDuration <= 60}
                 aria-label="Decrease duration by 5 minutes"
               >
@@ -416,7 +416,7 @@ export default function FocusTab() {
                     setShowDurationDropdown(!showDurationDropdown);
                     setShowSoundDropdown(false);
                   }}
-                  className="flex items-center gap-2 bg-white shadow-soft hover:shadow-card rounded-full px-4 py-2 text-sm font-medium text-foreground transition-all"
+                  className="flex items-center gap-2 bg-white dark:bg-gray-800 shadow-soft hover:shadow-card rounded-full px-4 py-2 text-sm font-medium text-foreground transition-all"
                 >
                   <span>{Math.floor(focusDuration / 60)} min</span>
                   <svg className={`w-4 h-4 text-muted transition-transform ${showDurationDropdown ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -427,7 +427,7 @@ export default function FocusTab() {
                 {showDurationDropdown && (
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setShowDurationDropdown(false)} />
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white rounded-2xl shadow-float p-2 z-20 min-w-[120px]">
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white dark:bg-gray-900 rounded-2xl shadow-float p-2 z-20 min-w-[120px]">
                       <div className="grid grid-cols-2 gap-1">
                         {[1, 5, 10, 15, 20, 25, 30, 45, 60, 90, 120].map((min) => (
                           <button
@@ -439,7 +439,7 @@ export default function FocusTab() {
                             className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
                               focusDuration === min * 60
                                 ? "bg-primary text-white"
-                                : "hover:bg-primary-light text-foreground"
+                                : "hover:bg-primary-light dark:hover:bg-primary/20 text-foreground"
                             }`}
                           >
                             {min}m
@@ -454,7 +454,7 @@ export default function FocusTab() {
               {/* Duration: plus button */}
               <button
                 onClick={() => adjustDuration(5)}
-                className="w-8 h-8 rounded-full bg-white shadow-soft hover:shadow-card flex items-center justify-center transition-all disabled:opacity-50"
+                className="w-8 h-8 rounded-full bg-white dark:bg-gray-800 shadow-soft hover:shadow-card flex items-center justify-center transition-all disabled:opacity-50"
                 disabled={focusDuration >= 120 * 60}
                 aria-label="Increase duration by 5 minutes"
               >
@@ -462,7 +462,7 @@ export default function FocusTab() {
               </button>
 
               {/* Divider */}
-              <div className="w-px h-6 bg-gray-200 mx-2" />
+              <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-2" />
 
               {/* Sound dropdown */}
               <div className="relative">
@@ -471,7 +471,7 @@ export default function FocusTab() {
                     setShowSoundDropdown(!showSoundDropdown);
                     setShowDurationDropdown(false);
                   }}
-                  className="flex items-center gap-2 bg-white shadow-soft hover:shadow-card rounded-full px-3 py-2 text-sm font-medium text-foreground transition-all"
+                  className="flex items-center gap-2 bg-white dark:bg-gray-800 shadow-soft hover:shadow-card rounded-full px-3 py-2 text-sm font-medium text-foreground transition-all"
                 >
                   <Volume2 className="w-4 h-4 text-primary" />
                   <span>{SOUND_OPTIONS.find(s => s.value === notificationSound)?.label}</span>
@@ -483,7 +483,7 @@ export default function FocusTab() {
                 {showSoundDropdown && (
                   <>
                     <div className="fixed inset-0 z-10" onClick={closeSoundDropdown} />
-                    <div className="absolute top-full right-0 mt-2 bg-white rounded-2xl shadow-float p-2 z-20 min-w-[140px]">
+                    <div className="absolute top-full right-0 mt-2 bg-white dark:bg-gray-900 rounded-2xl shadow-float p-2 z-20 min-w-[140px]">
                       {SOUND_OPTIONS.map((option) => (
                         <button
                           key={option.value}
@@ -494,7 +494,7 @@ export default function FocusTab() {
                           className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all text-left ${
                             notificationSound === option.value
                               ? "bg-primary text-white"
-                              : "hover:bg-primary-light text-foreground"
+                              : "hover:bg-primary-light dark:hover:bg-primary/20 text-foreground"
                           }`}
                         >
                           {option.value === "none" ? (
@@ -576,7 +576,7 @@ export default function FocusTab() {
 
           {/* Distraction counter */}
           {distractions.length > 0 && sessionState !== "abandoned" && (
-            <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
               <p className="text-sm text-muted">
                 Distractions logged: <span className="font-semibold text-foreground">{distractions.length}</span>
               </p>
@@ -589,10 +589,10 @@ export default function FocusTab() {
           <div className="mt-6 grid grid-cols-2 gap-4">
             <button
               onClick={handleOpenDistractionModal}
-              className="card !p-4 flex items-center justify-center gap-3 hover:border-amber-300 border-2 border-transparent transition-colors"
+              className="card !p-4 flex items-center justify-center gap-3 hover:border-amber-300 dark:hover:border-amber-600 border-2 border-transparent transition-colors"
             >
-              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm">Log Distraction</p>
@@ -602,10 +602,10 @@ export default function FocusTab() {
 
             <button
               onClick={handleOpenAbandonModal}
-              className="card !p-4 flex items-center justify-center gap-3 hover:border-red-300 border-2 border-transparent transition-colors"
+              className="card !p-4 flex items-center justify-center gap-3 hover:border-red-300 dark:hover:border-red-600 border-2 border-transparent transition-colors"
             >
-              <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
-                <X className="w-5 h-5 text-red-600" />
+              <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <X className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm">Abandon Session</p>
@@ -620,17 +620,17 @@ export default function FocusTab() {
           <div className="mt-6 card !p-6">
             <h3 className="font-semibold mb-4">Session Summary</h3>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 rounded-2xl p-4">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
                 <p className="text-xs text-muted">Time focused</p>
                 <p className="text-xl font-bold">{formatTime(focusDuration - timeLeft)}</p>
               </div>
-              <div className="bg-gray-50 rounded-2xl p-4">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
                 <p className="text-xs text-muted">Distractions</p>
                 <p className="text-xl font-bold">{distractions.length}</p>
               </div>
             </div>
             {distractions.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                 <p className="text-xs text-muted mb-2">What distracted you:</p>
                 <div className="flex flex-wrap gap-2">
                   {distractions.map((d, i) => (
@@ -644,7 +644,7 @@ export default function FocusTab() {
 
         {/* Mascot Encouragement */}
         <div className="mt-8 text-center">
-          <div className="inline-flex items-center gap-3 bg-primary-light rounded-full px-5 py-3">
+          <div className="inline-flex items-center gap-3 bg-primary-light dark:bg-primary/20 rounded-full px-5 py-3">
             <span className="text-2xl">
               {sessionState === "idle" && "🧠"}
               {sessionState === "focusing" && "💪"}
@@ -666,7 +666,7 @@ export default function FocusTab() {
       {/* Distraction Modal */}
       {showDistractionModal && (
         <div className="fixed inset-0 bg-foreground/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-float animate-modal-enter">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-float animate-modal-enter">
             <h3 className="text-xl font-bold mb-2">What distracted you?</h3>
             <p className="text-muted text-sm mb-6">Tracking helps identify patterns</p>
             
@@ -684,7 +684,7 @@ export default function FocusTab() {
                 <button
                   key={item.label}
                   onClick={() => handleLogDistraction(item.label)}
-                  className="flex items-center gap-3 p-4 bg-gray-50 hover:bg-primary-light rounded-2xl transition-colors text-left"
+                  className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 hover:bg-primary-light dark:hover:bg-primary/20 rounded-2xl transition-colors text-left"
                 >
                   <span className="text-xl">{item.icon}</span>
                   <span className="text-sm font-medium">{item.label}</span>
@@ -705,10 +705,10 @@ export default function FocusTab() {
       {/* Abandon Confirmation Modal */}
       {showAbandonConfirm && (
         <div className="fixed inset-0 bg-foreground/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-float animate-modal-enter">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-float animate-modal-enter">
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-                <X className="w-8 h-8 text-red-500" />
+              <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+                <X className="w-8 h-8 text-red-500 dark:text-red-400" />
               </div>
               <h3 className="text-xl font-bold mb-2">Abandon session?</h3>
               <p className="text-muted text-sm mb-6">

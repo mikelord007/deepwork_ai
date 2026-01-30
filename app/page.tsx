@@ -98,7 +98,7 @@ export default function HomePage() {
       <div className="blob-green w-64 h-64 top-1/3 -left-32 fixed opacity-30" />
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-gray-100">
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
@@ -164,12 +164,12 @@ export default function HomePage() {
             {/* Right: Phone Mockup */}
             <div className="relative flex justify-center lg:justify-end pb-16 sm:pb-0">
               {/* Decorative clouds/blobs */}
-              <div className="absolute -top-8 right-0 w-20 h-12 bg-gray-200/50 rounded-full blur-sm hidden sm:block" />
-              <div className="absolute -top-4 right-24 w-14 h-8 bg-gray-200/40 rounded-full blur-sm hidden sm:block" />
-              <div className="absolute top-8 -right-4 w-16 h-10 bg-gray-200/30 rounded-full blur-sm hidden sm:block" />
+              <div className="absolute -top-8 right-0 w-20 h-12 bg-gray-200/50 dark:bg-gray-700/50 rounded-full blur-sm hidden sm:block" />
+              <div className="absolute -top-4 right-24 w-14 h-8 bg-gray-200/40 dark:bg-gray-700/40 rounded-full blur-sm hidden sm:block" />
+              <div className="absolute top-8 -right-4 w-16 h-10 bg-gray-200/30 dark:bg-gray-700/30 rounded-full blur-sm hidden sm:block" />
 
               {/* Phone frame */}
-              <div className="relative w-64 sm:w-72 bg-foreground ring-1 ring-black rounded-[2.5rem] sm:rounded-[3rem] p-2 sm:p-3 shadow-float">
+              <div className="relative w-64 sm:w-72 bg-foreground ring-1 ring-black dark:ring-gray-700 rounded-[2.5rem] sm:rounded-[3rem] p-2 sm:p-3 shadow-float">
                 <div className="bg-background rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden">
                   {/* Status bar */}
                   <div className="flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 text-xs text-muted">
@@ -195,7 +195,7 @@ export default function HomePage() {
                     <div className="card !p-4 !rounded-2xl">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl bg-primary-light dark:bg-primary/20 flex items-center justify-center">
                             <Brain className="w-5 h-5 text-primary" />
                           </div>
                           <div>
@@ -211,12 +211,12 @@ export default function HomePage() {
 
                     {/* Stats row */}
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-gray-50 rounded-2xl p-3">
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-3">
                         <Clock className="w-4 h-4 text-primary mb-1" />
                         <p className="text-xs text-muted">Focus time</p>
                         <p className="font-semibold">3h 24m</p>
                       </div>
-                      <div className="bg-gray-50 rounded-2xl p-3">
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-3">
                         <Zap className="w-4 h-4 text-amber-500 mb-1" />
                         <p className="text-xs text-muted">Streak</p>
                         <p className="font-semibold">7 days 🔥</p>
@@ -229,7 +229,7 @@ export default function HomePage() {
               {/* Mascot placeholder */}
               <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 lg:left-8">
                 <div className="card !p-2 sm:!p-3 !rounded-xl sm:!rounded-2xl flex items-center gap-2 sm:gap-3 w-48 sm:w-56">
-                  <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-full bg-primary-light flex items-center justify-center text-xl sm:text-2xl">
+                  <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-full bg-primary-light dark:bg-primary/20 flex items-center justify-center text-xl sm:text-2xl">
                     🧠
                   </div>
                   <div>
@@ -244,7 +244,7 @@ export default function HomePage() {
       </section>
 
       {/* Tagline Section */}
-      <section className="section bg-white">
+      <section className="section bg-white dark:bg-gray-900">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="section-title">
             Understand your mind. Train your focus.
@@ -258,13 +258,13 @@ export default function HomePage() {
       </section>
 
       {/* Explore Features Section */}
-      <section id="features" className="section bg-primary-light/30">
+      <section id="features" className="section bg-primary-light/30 dark:bg-primary/10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             {/* Left: Phone with UI */}
             <div className="relative order-2 lg:order-1">
               {/* Phone mockup */}
-              <div className="relative w-64 mx-auto bg-foreground ring-1 ring-black rounded-[3rem] p-3 shadow-float">
+              <div className="relative w-64 mx-auto bg-foreground ring-1 ring-black dark:ring-gray-700 rounded-[3rem] p-3 shadow-float">
                 <div className="bg-background rounded-[2.5rem] overflow-hidden">
                   <div className="px-4 py-6 space-y-3">
                     <div className="flex items-center justify-between mb-4">
@@ -272,14 +272,14 @@ export default function HomePage() {
                         <p className="text-xs text-muted">Good morning</p>
                         <p className="font-semibold">Your focus plan</p>
                       </div>
-                      <div className="w-8 h-8 rounded-full bg-gray-100" />
+                      <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800" />
                     </div>
 
                     {/* Tasks */}
                     {["Deep work: Code review", "Admin: Email inbox", "Creative: Writing"].map((task, i) => (
-                      <div key={task} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                      <div key={task} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                          i === 0 ? "bg-primary text-white" : "bg-gray-200"
+                          i === 0 ? "bg-primary text-white" : "bg-gray-200 dark:bg-gray-700"
                         }`}>
                           {i === 0 ? <Zap className="w-4 h-4" /> : <Clock className="w-4 h-4 text-muted" />}
                         </div>
@@ -295,7 +295,7 @@ export default function HomePage() {
 
               {/* Decorative mascot */}
               <div className="absolute -right-2 sm:-right-4 bottom-16 sm:bottom-20 w-16 sm:w-24 h-16 sm:h-24 hidden sm:flex">
-                <div className="w-full h-full rounded-full bg-primary-light flex items-center justify-center text-2xl sm:text-4xl">
+                <div className="w-full h-full rounded-full bg-primary-light dark:bg-primary/20 flex items-center justify-center text-2xl sm:text-4xl">
                   🎯
                 </div>
               </div>
@@ -316,7 +316,7 @@ export default function HomePage() {
               <div className="grid gap-4">
                 {features.map((feature) => (
                   <div key={feature.title} className="card !p-5 flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary-light flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-primary-light dark:bg-primary/20 flex items-center justify-center flex-shrink-0">
                       <feature.icon className="w-6 h-6 text-primary" />
                     </div>
                     <div>
@@ -346,7 +346,7 @@ export default function HomePage() {
             {advancedFeatures.map((feature, i) => (
               <div key={feature.title} className={`card ${i === 0 ? "md:col-span-2 lg:col-span-1" : ""}`}>
                 {/* Placeholder for feature image */}
-                <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl mb-4 flex items-center justify-center">
+                <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl mb-4 flex items-center justify-center">
                   {i === 0 && <BarChart3 className="w-12 h-12 text-primary/30" />}
                   {i === 1 && <Calendar className="w-12 h-12 text-primary/30" />}
                   {i === 2 && <Lightbulb className="w-12 h-12 text-primary/30" />}
@@ -362,7 +362,7 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="section bg-white">
+      <section id="testimonials" className="section bg-white dark:bg-gray-900">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="section-header">
             <h2 className="section-title">Testimonials</h2>
@@ -375,7 +375,7 @@ export default function HomePage() {
             {testimonials.map((t) => (
               <div key={t.author} className="card flex flex-col">
                 <p className="text-foreground flex-1">&ldquo;{t.quote}&rdquo;</p>
-                <div className="mt-6 pt-4 border-t border-gray-100">
+                <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
                   <p className="font-semibold text-sm">{t.author}</p>
                   <p className="text-xs text-muted">{t.role}</p>
                 </div>
@@ -396,7 +396,7 @@ export default function HomePage() {
             helps you train it—gently.
           </p>
           <div className="mt-8 flex justify-center">
-            <div className="w-20 h-20 rounded-full bg-primary-light flex items-center justify-center text-4xl">
+            <div className="w-20 h-20 rounded-full bg-primary-light dark:bg-primary/20 flex items-center justify-center text-4xl">
               🧠
             </div>
           </div>
@@ -404,7 +404,7 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-foreground text-white py-20 lg:py-28">
+      <section className="bg-gray-900 text-white py-20 lg:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -435,7 +435,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-foreground text-gray-400 py-12 border-t border-gray-800">
+      <footer className="bg-gray-900 text-gray-400 py-12 border-t border-gray-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">

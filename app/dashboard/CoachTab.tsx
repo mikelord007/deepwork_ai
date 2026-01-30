@@ -231,11 +231,11 @@ export default function CoachTab() {
       {/* Header - hidden on mobile when chat is active */}
       <div className={
         hasMessages 
-          ? "hidden md:block py-4 border-b border-gray-100" 
+          ? "hidden md:block py-4 border-b border-gray-100 dark:border-gray-800" 
           : "mb-8"
       }>
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-primary-light dark:bg-primary/20 flex items-center justify-center">
             <MessageCircle className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -257,7 +257,7 @@ export default function CoachTab() {
                 className={`max-w-[85%] rounded-2xl px-4 py-3 ${
                   msg.role === "user"
                     ? "bg-primary text-white"
-                    : "bg-gray-100 text-foreground"
+                    : "bg-gray-100 dark:bg-gray-800 text-foreground"
                 }`}
               >
                 <p className="text-sm">{msg.content}</p>
@@ -266,7 +266,7 @@ export default function CoachTab() {
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-gray-100 text-foreground">
+              <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-gray-100 dark:bg-gray-800 text-foreground">
                 <p className="text-sm text-muted">Thinking…</p>
               </div>
             </div>
@@ -276,7 +276,7 @@ export default function CoachTab() {
       )}
 
       {/* Input form - always rendered, styling changes based on state */}
-      <div className={hasMessages ? "py-4 border-t border-gray-100" : ""}>
+      <div className={hasMessages ? "py-4 border-t border-gray-100 dark:border-gray-800" : ""}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
             <textarea
@@ -290,18 +290,18 @@ export default function CoachTab() {
               }}
               placeholder="Ask about your focus sessions, patterns, or get advice..."
               rows={3}
-              className={`w-full resize-none rounded-2xl border bg-white px-5 py-4 pr-24 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all ${
-                isListening ? "border-accent/50 ring-1 ring-accent/20" : "border-gray-200"
+              className={`w-full resize-none rounded-2xl border bg-white dark:bg-gray-900 px-5 py-4 pr-24 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all ${
+                isListening ? "border-accent/50 ring-1 ring-accent/20" : "border-gray-200 dark:border-gray-700"
               }`}
             />
             {/* Mic permission prompt when we need access and user clicked mic */}
             {showMicPermissionPrompt && !isListening && (
-              <div className="absolute left-4 right-14 bottom-4 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+              <div className="absolute left-4 right-14 bottom-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
                 We need access to your microphone. Please allow it in your browser so we can start using the microphone.
               </div>
             )}
             {micPermissionDenied && !isListening && (
-              <div className="absolute left-4 right-14 bottom-4 rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-800">
+              <div className="absolute left-4 right-14 bottom-4 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 px-3 py-2 text-xs text-red-800 dark:text-red-200">
                 Microphone access was denied. Please allow it in your browser settings to use voice input.
               </div>
             )}
@@ -327,7 +327,7 @@ export default function CoachTab() {
                   className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
                     isListening
                       ? "bg-accent text-white hover:bg-emerald-600"
-                      : "bg-gray-100 text-foreground hover:bg-gray-200"
+                      : "bg-gray-100 dark:bg-gray-800 text-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
                   }`}
                   aria-label={isListening ? "Stop voice input" : "Start voice input"}
                 >
@@ -355,7 +355,7 @@ export default function CoachTab() {
                     key={suggestion}
                     type="button"
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-primary-light text-left text-sm text-foreground transition-colors"
+                    className="px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-primary-light dark:hover:bg-primary/20 text-left text-sm text-foreground transition-colors"
                   >
                     {suggestion}
                   </button>

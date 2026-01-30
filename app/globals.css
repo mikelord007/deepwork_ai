@@ -8,10 +8,20 @@
   color-scheme: light;
   --background: #FAFAFA;
   --foreground: #1A1A1A;
+  --muted: #6B7280;
+  --muted-foreground: #9CA3AF;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #0A0A0A;
+  --foreground: #F5F5F5;
+  --muted: #9CA3AF;
+  --muted-foreground: #6B7280;
 }
 
 body {
-  @apply bg-background text-foreground antialiased font-body;
+  @apply bg-background text-foreground antialiased font-body transition-colors duration-200;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -19,7 +29,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .card {
-  @apply bg-white rounded-3xl sm:rounded-4xl shadow-card border border-gray-100 p-4 sm:p-6 transition-all duration-200;
+  @apply bg-white dark:bg-gray-900 rounded-3xl sm:rounded-4xl shadow-card border border-gray-100 dark:border-gray-800 p-4 sm:p-6 transition-all duration-200;
 }
 
 .card:hover {
@@ -35,15 +45,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center gap-2 border border-gray-200 bg-white text-foreground font-medium rounded-full px-5 py-2.5 transition-all duration-200;
+  @apply inline-flex items-center justify-center gap-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-foreground font-medium rounded-full px-5 py-2.5 transition-all duration-200;
 }
 
 .btn-secondary:hover {
-  @apply border-gray-300 bg-gray-50;
+  @apply border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700;
 }
 
 .badge {
-  @apply inline-flex items-center gap-1.5 bg-primary-light text-primary font-medium text-xs rounded-full px-3 py-1;
+  @apply inline-flex items-center gap-1.5 bg-primary-light dark:bg-primary/20 text-primary font-medium text-xs rounded-full px-3 py-1;
 }
 
 /* Soft blob background effects */
@@ -175,6 +185,10 @@ body {
   scrollbar-color: #d1d5db transparent;
 }
 
+.dark .scrollbar-thin {
+  scrollbar-color: #4b5563 transparent;
+}
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
 }
@@ -188,6 +202,14 @@ body {
   border-radius: 3px;
 }
 
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background-color: #9ca3af;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #6b7280;
 }

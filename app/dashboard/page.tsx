@@ -13,6 +13,7 @@ import {
 import CoachTab from "./CoachTab";
 import FocusTab from "./FocusTab";
 import MetricsTab from "./MetricsTab";
+import SettingsPanel from "../components/SettingsPanel";
 
 type TabId = "coach" | "focus" | "metrics";
 
@@ -29,6 +30,7 @@ function DashboardContent() {
     tabParam && NAV_ITEMS.some((t) => t.id === tabParam) ? tabParam : "coach"
   );
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (tabParam && NAV_ITEMS.some((t) => t.id === tabParam)) {
@@ -41,7 +43,7 @@ function DashboardContent() {
       {/* ===== MOBILE: Header + Pill Tabs ===== */}
       <div className="md:hidden">
         {/* Mobile Header */}
-        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100">
+        <header className="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between px-4 h-14">
             <a href="/" className="flex items-center gap-2">
               <img src="/logo.svg" alt="" className="w-8 h-8 flex-shrink-0" />
@@ -51,6 +53,7 @@ function DashboardContent() {
             </a>
             <button
               type="button"
+              onClick={() => setShowSettings(true)}
               className="p-2 text-muted hover:text-foreground transition-colors"
               aria-label="Settings"
             >
@@ -60,7 +63,7 @@ function DashboardContent() {
 
           {/* Pill/Segment Tabs */}
           <div className="px-4 pb-3">
-            <div className="flex bg-gray-100 rounded-xl p-1">
+            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
               {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -70,7 +73,7 @@ function DashboardContent() {
                     onClick={() => setActiveTab(item.id)}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
                       isActive
-                        ? "bg-white text-foreground shadow-sm"
+                        ? "bg-white dark:bg-gray-700 text-foreground shadow-sm"
                         : "text-muted"
                     }`}
                   >
@@ -86,12 +89,12 @@ function DashboardContent() {
 
       {/* ===== DESKTOP: Sidebar ===== */}
       <aside
-        className={`hidden md:flex fixed left-0 top-0 h-full bg-white border-r border-gray-100 z-40 flex-col transition-all duration-200 ${
+        className={`hidden md:flex fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 z-40 flex-col transition-all duration-200 ${
           sidebarExpanded ? "w-52" : "w-16"
         }`}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-center border-b border-gray-100 px-3">
+        <div className="h-16 flex items-center justify-center border-b border-gray-100 dark:border-gray-800 px-3">
           <a href="/" className="flex items-center gap-2 overflow-hidden">
             <img src="/logo.svg" alt="" className="w-9 h-9 flex-shrink-0" />
             {sidebarExpanded && (
@@ -114,7 +117,7 @@ function DashboardContent() {
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
                   isActive
                     ? "bg-primary text-white shadow-soft"
-                    : "text-muted hover:bg-gray-100 hover:text-foreground"
+                    : "text-muted hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-foreground"
                 }`}
                 title={!sidebarExpanded ? item.label : undefined}
               >
@@ -130,11 +133,12 @@ function DashboardContent() {
         </nav>
 
         {/* Bottom section */}
-        <div className="border-t border-gray-100 p-2 space-y-1">
+        <div className="border-t border-gray-100 dark:border-gray-800 p-2 space-y-1">
           {/* Settings */}
           <button
             type="button"
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted hover:bg-gray-100 hover:text-foreground transition-all"
+            onClick={() => setShowSettings(true)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-foreground transition-all"
             title={!sidebarExpanded ? "Settings" : undefined}
           >
             <Settings className="w-5 h-5 flex-shrink-0" />
@@ -146,7 +150,7 @@ function DashboardContent() {
           {/* Expand/Collapse toggle */}
           <button
             onClick={() => setSidebarExpanded(!sidebarExpanded)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted hover:bg-gray-100 hover:text-foreground transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-foreground transition-all"
             title={sidebarExpanded ? "Collapse" : "Expand"}
           >
             {sidebarExpanded ? (
@@ -174,6 +178,9 @@ function DashboardContent() {
           {activeTab === "metrics" && <MetricsTab />}
         </div>
       </main>
+
+      {/* Settings Panel */}
+      <SettingsPanel isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   );
 }

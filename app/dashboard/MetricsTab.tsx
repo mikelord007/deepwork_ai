@@ -84,12 +84,12 @@ export default function MetricsTab() {
   if (!isSupabaseConfigured()) {
     return (
       <div className="min-h-[calc(100vh-120px)] md:min-h-screen flex flex-col items-center justify-center max-w-2xl mx-auto px-4 py-20 text-center">
-        <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-6">
-          <AlertTriangle className="w-8 h-8 text-amber-600" />
+        <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-6">
+          <AlertTriangle className="w-8 h-8 text-amber-600 dark:text-amber-400" />
         </div>
         <h2 className="text-xl font-bold mb-2">Supabase Not Configured</h2>
         <p className="text-muted">
-          Add your Supabase credentials to <code className="bg-gray-100 px-2 py-1 rounded">.env.local</code> to view metrics.
+          Add your Supabase credentials to <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">.env.local</code> to view metrics.
         </p>
       </div>
     );
@@ -114,48 +114,48 @@ export default function MetricsTab() {
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="card !p-5">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-gray-200" />
-                  <div className="h-4 w-20 rounded bg-gray-200" />
+                  <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-gray-700" />
+                  <div className="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700" />
                 </div>
-                <div className="h-9 w-16 rounded bg-gray-200" />
+                <div className="h-9 w-16 rounded bg-gray-200 dark:bg-gray-700" />
               </div>
             ))}
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-gray-50 rounded-2xl p-4">
-                <div className="h-3 w-16 rounded bg-gray-200 mb-2" />
-                <div className="h-6 w-12 rounded bg-gray-200" />
+              <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
+                <div className="h-3 w-16 rounded bg-gray-200 dark:bg-gray-700 mb-2" />
+                <div className="h-6 w-12 rounded bg-gray-200 dark:bg-gray-700" />
               </div>
             ))}
           </div>
           <div className="grid lg:grid-cols-2 gap-6">
             <div className="card">
               <div className="flex items-center gap-2 mb-6">
-                <div className="h-5 w-5 rounded bg-gray-200" />
-                <div className="h-5 w-24 rounded bg-gray-200" />
+                <div className="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-5 w-24 rounded bg-gray-200 dark:bg-gray-700" />
               </div>
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5, 6, 7].map((i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <div className="h-3 w-12 rounded bg-gray-200 flex-shrink-0" />
-                    <div className="flex-1 h-6 rounded-full bg-gray-200" />
-                    <div className="h-3 w-8 rounded bg-gray-200" />
+                    <div className="h-3 w-12 rounded bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+                    <div className="flex-1 h-6 rounded-full bg-gray-200 dark:bg-gray-700" />
+                    <div className="h-3 w-8 rounded bg-gray-200 dark:bg-gray-700" />
                   </div>
                 ))}
               </div>
             </div>
             <div className="card">
               <div className="flex items-center gap-2 mb-6">
-                <div className="h-5 w-5 rounded bg-gray-200" />
-                <div className="h-5 w-32 rounded bg-gray-200" />
+                <div className="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-5 w-32 rounded bg-gray-200 dark:bg-gray-700" />
               </div>
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <div className="h-4 flex-1 rounded bg-gray-200" />
-                    <div className="h-2 w-16 rounded-full bg-gray-200 flex-shrink-0" />
-                    <div className="h-3 w-8 rounded bg-gray-200 flex-shrink-0" />
+                    <div className="h-4 flex-1 rounded bg-gray-200 dark:bg-gray-700" />
+                    <div className="h-2 w-16 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+                    <div className="h-3 w-8 rounded bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
                   </div>
                 ))}
               </div>
@@ -164,28 +164,28 @@ export default function MetricsTab() {
           <div className="card">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <div className="h-5 w-5 rounded bg-gray-200" />
-                <div className="h-5 w-40 rounded bg-gray-200" />
+                <div className="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-5 w-40 rounded bg-gray-200 dark:bg-gray-700" />
               </div>
             </div>
             <div className="flex items-end gap-1 h-32">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24].map((i) => (
-                <div key={i} className="flex-1 rounded-t bg-gray-200" style={{ height: `${30 + (i % 5) * 15}%` }} />
+                <div key={i} className="flex-1 rounded-t bg-gray-200 dark:bg-gray-700" style={{ height: `${30 + (i % 5) * 15}%` }} />
               ))}
             </div>
           </div>
           <div className="card">
             <div className="flex items-center gap-2 mb-6">
-              <div className="h-5 w-5 rounded bg-gray-200" />
-              <div className="h-5 w-32 rounded bg-gray-200" />
+              <div className="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700" />
+              <div className="h-5 w-32 rounded bg-gray-200 dark:bg-gray-700" />
             </div>
             <div className="space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
-                  <div className="w-10 h-10 rounded-xl bg-gray-200" />
+                <div key={i} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                  <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-gray-700" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-28 rounded bg-gray-200" />
-                    <div className="h-3 w-36 rounded bg-gray-200" />
+                    <div className="h-4 w-28 rounded bg-gray-200 dark:bg-gray-700" />
+                    <div className="h-3 w-36 rounded bg-gray-200 dark:bg-gray-700" />
                   </div>
                 </div>
               ))}
@@ -194,7 +194,7 @@ export default function MetricsTab() {
         </div>
       ) : metrics && metrics.totalSessions === 0 ? (
         <div className="text-center py-20">
-          <div className="w-20 h-20 rounded-full bg-primary-light flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 rounded-full bg-primary-light dark:bg-primary/20 flex items-center justify-center mx-auto mb-6">
             <BarChart3 className="w-10 h-10 text-primary" />
           </div>
           <h3 className="text-xl font-bold mb-2">No sessions yet</h3>
@@ -205,7 +205,7 @@ export default function MetricsTab() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="card !p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-primary-light dark:bg-primary/20 flex items-center justify-center">
                   <Target className="w-5 h-5 text-primary" />
                 </div>
                 <span className="text-sm text-muted">Total Sessions</span>
@@ -214,7 +214,7 @@ export default function MetricsTab() {
             </div>
             <div className="card !p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-accent-light flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-accent-light dark:bg-accent/20 flex items-center justify-center">
                   <CheckCircle className="w-5 h-5 text-accent" />
                 </div>
                 <span className="text-sm text-muted">Completion Rate</span>
@@ -223,8 +223,8 @@ export default function MetricsTab() {
             </div>
             <div className="card !p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <span className="text-sm text-muted">Total Focus</span>
               </div>
@@ -236,8 +236,8 @@ export default function MetricsTab() {
             </div>
             <div className="card !p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                  <Flame className="w-5 h-5 text-amber-600" />
+                <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                  <Flame className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 </div>
                 <span className="text-sm text-muted">Current Streak</span>
               </div>
@@ -246,19 +246,19 @@ export default function MetricsTab() {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-gray-50 rounded-2xl p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
               <p className="text-xs text-muted mb-1">Completed</p>
               <p className="text-xl font-bold text-accent">{metrics?.completedSessions || 0}</p>
             </div>
-            <div className="bg-gray-50 rounded-2xl p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
               <p className="text-xs text-muted mb-1">Abandoned</p>
               <p className="text-xl font-bold text-red-500">{metrics?.abandonedSessions || 0}</p>
             </div>
-            <div className="bg-gray-50 rounded-2xl p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
               <p className="text-xs text-muted mb-1">Avg Session</p>
               <p className="text-xl font-bold">{metrics?.avgSessionMinutes || 0}m</p>
             </div>
-            <div className="bg-gray-50 rounded-2xl p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
               <p className="text-xs text-muted mb-1">Longest Streak</p>
               <p className="text-xl font-bold">{metrics?.longestStreak || 0} days</p>
             </div>
@@ -276,7 +276,7 @@ export default function MetricsTab() {
                     <span className="text-xs text-muted w-16 flex-shrink-0">
                       {new Date(day.date).toLocaleDateString("en-US", { weekday: "short" })}
                     </span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+                    <div className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full h-6 overflow-hidden">
                       <div
                         className="h-full bg-gradient-to-r from-primary to-primary-dark rounded-full flex items-center justify-end px-2 transition-all duration-500"
                         style={{ width: `${Math.max((day.focusMinutes / maxDailyMinutes) * 100, day.focusMinutes > 0 ? 15 : 0)}%` }}
@@ -302,14 +302,14 @@ export default function MetricsTab() {
               {distractions.length === 0 ? (
                 <div className="text-center py-8 text-muted">
                   <p>No distractions logged yet</p>
-                  <p className="text-sm mt-1">Keep it up! 🎉</p>
+                  <p className="text-sm mt-1">Keep it up!</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {distractions.slice(0, 6).map((d) => (
                     <div key={d.type} className="flex items-center gap-3">
                       <span className="text-sm flex-1">{d.type}</span>
-                      <div className="w-24 bg-gray-100 rounded-full h-2 overflow-hidden">
+                      <div className="w-24 bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                         <div className="h-full bg-amber-400 rounded-full" style={{ width: `${d.percentage}%` }} />
                       </div>
                       <span className="text-xs text-muted w-12 text-right">{d.count}</span>
@@ -318,7 +318,7 @@ export default function MetricsTab() {
                 </div>
               )}
               {metrics && metrics.totalDistractions > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                   <p className="text-sm text-muted">
                     Avg <span className="font-semibold text-foreground">{metrics.avgDistractionsPerSession}</span> distractions per session
                   </p>
@@ -343,7 +343,7 @@ export default function MetricsTab() {
               {hourlyPatterns.map((h) => (
                 <div key={h.hour} className="flex-1 flex flex-col items-center gap-1">
                   <div
-                    className={`w-full rounded-t transition-all duration-300 ${h.sessions > 0 ? "bg-primary" : "bg-gray-100"}`}
+                    className={`w-full rounded-t transition-all duration-300 ${h.sessions > 0 ? "bg-primary" : "bg-gray-100 dark:bg-gray-700"}`}
                     style={{
                       height: `${Math.max((h.sessions / maxHourlySessions) * 100, h.sessions > 0 ? 10 : 5)}%`,
                       opacity: h.sessions > 0 ? 0.3 + (h.completionRate / 100) * 0.7 : 0.3,
@@ -366,16 +366,16 @@ export default function MetricsTab() {
             ) : (
               <div className="space-y-3">
                 {recentSessions.map((session) => (
-                  <div key={session.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
+                  <div key={session.id} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
                     <div
                       className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                        session.status === "completed" ? "bg-accent-light" : "bg-red-100"
+                        session.status === "completed" ? "bg-accent-light dark:bg-accent/20" : "bg-red-100 dark:bg-red-900/30"
                       }`}
                     >
                       {session.status === "completed" ? (
                         <CheckCircle className="w-5 h-5 text-accent" />
                       ) : (
-                        <XCircle className="w-5 h-5 text-red-500" />
+                        <XCircle className="w-5 h-5 text-red-500 dark:text-red-400" />
                       )}
                     </div>
                     <div className="flex-1">
@@ -387,7 +387,7 @@ export default function MetricsTab() {
                       </p>
                     </div>
                     {session.distractions > 0 && (
-                      <div className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                      <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded-full">
                         {session.distractions} distraction{session.distractions > 1 ? "s" : ""}
                       </div>
                     )}

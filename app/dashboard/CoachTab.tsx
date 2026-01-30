@@ -68,6 +68,7 @@ export default function CoachTab() {
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const baseInputRef = useRef("");
   const hasMicPermissionBeenGrantedRef = useRef(false);
+  const sessionStableRef = useRef("");
 
   // Detect speech support after mount to avoid hydration mismatch (window is undefined on server)
   useEffect(() => {
@@ -88,24 +89,39 @@ export default function CoachTab() {
       setShowMicPermissionPrompt(false);
       setMicPermissionDenied(false);
       setIsListening(true);
+      sessionStableRef.current = "";
     };
 
     recognition.onresult = (e: SpeechRecognitionEvent) => {
-      let fullTranscript = "";
-      let interim = "";
-      for (let i = 0; i < e.results.length; i++) {
-        const result = e.results[i];
-        const transcript = (result[0] as SpeechRecognitionAlternative)?.transcript ?? "";
-        if (result.isFinal) {
-          fullTranscript += (fullTranscript ? " " : "") + transcript;
+      const lastIdx = e.results.length - 1;
+      const lastResult = e.results[lastIdx];
+      const transcript = (lastResult[0] as SpeechRecognitionAlternative)?.transcript ?? "";
+      const isFinal = lastResult.isFinal;
+      const base = baseInputRef.current;
+      const stable = sessionStableRef.current;
+
+      if (isFinal) {
+        const trimmedStable = stable.trim();
+        if (!trimmedStable || transcript.trim().startsWith(trimmedStable)) {
+          sessionStableRef.current = transcript;
         } else {
-          interim = transcript;
+          sessionStableRef.current = trimmedStable + " " + transcript.trim();
         }
       }
-      let s = baseInputRef.current;
-      if (fullTranscript) s += (s ? " " : "") + fullTranscript;
-      if (interim) s += (s ? " " : "") + interim;
-      setInput(s);
+
+      const currentStable = sessionStableRef.current;
+      let display: string;
+      if (isFinal) {
+        display = base ? base + " " + currentStable : currentStable;
+      } else {
+        const trimmedStable = currentStable.trim();
+        if (!trimmedStable || transcript.trim().startsWith(trimmedStable)) {
+          display = base ? base + " " + transcript : transcript;
+        } else {
+          display = base ? base + " " + trimmedStable + " " + transcript : trimmedStable + " " + transcript;
+        }
+      }
+      setInput(display);
     };
 
     recognition.onend = () => {
@@ -216,7 +232,7 @@ export default function CoachTab() {
             }}
             placeholder="Ask about your focus sessions, patterns, or get advice..."
             rows={3}
-            className={`w-full resize-none rounded-2xl border bg-white px-4 py-3 pr-24 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all ${
+            className={`w-full resize-none rounded-2xl border bg-white px-5 py-4 pr-24 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all ${
               isListening ? "border-accent/50 ring-1 ring-accent/20" : "border-gray-200"
             }`}
           />

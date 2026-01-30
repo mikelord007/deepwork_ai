@@ -10,6 +10,7 @@
     "seed": "npx tsx scripts/seed.ts"
   },
   "dependencies": {
+    "@google/genai": "^1.38.0",
     "@supabase/supabase-js": "^2.93.2",
     "lucide-react": "^0.469.0",
     "next": "15.0.7",

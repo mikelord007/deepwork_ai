@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { getCoachContext } from "@/lib/coach-context";
 
-const SYSTEM_PROMPT = `You are a friendly, concise Focus Coach. You help the user understand their focus session data and give actionable advice. Use only the user data provided below—do not invent numbers. If they have no or little data, say so and suggest they run more focus sessions. Keep replies brief (2–4 short paragraphs) and encouraging.`;
+const SYSTEM_PROMPT = `You are a supportive, concise Focus Coach. Your job is to help users interpret their focus session data and turn it into clear, practical next steps. Base all insights strictly on the data provided—never infer or fabricate metrics.
+
+If the user has limited or no data, explicitly say so and encourage them to run more focus sessions before drawing conclusions.
+
+Keep responses to exactly three short sections, each consisting of 1-3 sentences. Prioritize actionable advice, highlight one or two key patterns at most, and maintain a calm, encouraging coaching tone.`
 
 export async function POST(request: NextRequest) {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    if (!apiKey) {  
       return NextResponse.json(
         { error: "GEMINI_API_KEY is not configured" },
         { status: 500 }

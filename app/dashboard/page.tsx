@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   BarChart3,
   ChevronLeft,
@@ -24,6 +24,7 @@ const NAV_ITEMS: { id: TabId; label: string; icon: typeof MessageCircle }[] = [
 ];
 
 function DashboardContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab") as TabId | null;
   const [activeTab, setActiveTab] = useState<TabId>(
@@ -31,12 +32,45 @@ function DashboardContent() {
   );
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [prefsStatus, setPrefsStatus] = useState<"loading" | "missing" | "ok">("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/user/preferences")
+      .then((r) => (r.status === 200 ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        if (data == null || (typeof data === "object" && !("user_id" in data))) {
+          setPrefsStatus("missing");
+          router.replace("/dashboard/onboarding");
+        } else {
+          setPrefsStatus("ok");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setPrefsStatus("ok");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   useEffect(() => {
     if (tabParam && NAV_ITEMS.some((t) => t.id === tabParam)) {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
+
+  if (prefsStatus === "loading") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center text-muted">
+        Loading...
+      </div>
+    );
+  }
+  if (prefsStatus === "missing") {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">

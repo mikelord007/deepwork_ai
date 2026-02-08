@@ -179,6 +179,20 @@ body {
   animation: modal-enter 0.2s ease-out;
 }
 
+/* Onboarding welcome float */
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float-gentle {
+  animation: float-gentle 3s ease-in-out infinite;
+}
+
 /* Custom scrollbar for chat */
 .scrollbar-thin {
   scrollbar-width: thin;

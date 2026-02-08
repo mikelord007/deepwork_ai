@@ -26,6 +26,7 @@ import {
   SOUND_OPTIONS,
   type SoundType,
 } from "@/lib/sounds";
+import { useAuth } from "@/lib/auth-context";
 
 const DEFAULT_DURATION = 25 * 60; // 25 minutes in seconds
 const BREAK_DURATION = 5 * 60; // 5 minutes in seconds
@@ -33,6 +34,7 @@ const BREAK_DURATION = 5 * 60; // 5 minutes in seconds
 type SessionState = "idle" | "focusing" | "paused" | "break" | "abandoned";
 
 export default function FocusTab() {
+  const { userId } = useAuth();
   const [sessionState, setSessionState] = useState<SessionState>("idle");
   const [focusDuration, setFocusDuration] = useState(DEFAULT_DURATION); // customizable
   const [timeLeft, setTimeLeft] = useState(DEFAULT_DURATION);
@@ -57,6 +59,21 @@ export default function FocusTab() {
   useEffect(() => {
     setNotificationSound(getSavedSound());
   }, []);
+
+  // Load default session length from user preferences (once)
+  useEffect(() => {
+    if (!userId) return;
+    fetch("/api/user/preferences")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.default_focus_minutes && typeof data.default_focus_minutes === "number") {
+          const sec = data.default_focus_minutes * 60;
+          setFocusDuration(sec);
+          setTimeLeft(sec);
+        }
+      })
+      .catch(() => {});
+  }, [userId]);
 
   const handleSoundChange = (sound: SoundType) => {
     // Stop any current repeating preview
@@ -108,12 +125,12 @@ export default function FocusTab() {
   };
 
   const handleStart = async () => {
+    if (!userId) return;
     setSessionState("focusing");
     sessionStartTimeRef.current = Date.now();
     pauseCountRef.current = 0;
-    
-    // Create session in Supabase with custom duration
-    const session = await createSession(focusDuration);
+
+    const session = await createSession(focusDuration, userId);
     if (session) {
       setCurrentSessionId(session.id);
     }
@@ -122,26 +139,24 @@ export default function FocusTab() {
   const handlePause = async () => {
     setSessionState("paused");
     pauseCountRef.current += 1;
-    
-    // Log pause event
-    if (currentSessionId) {
+
+    if (currentSessionId && userId) {
       await logSessionEvent(currentSessionId, "session_paused", {
         time_elapsed_seconds: getTimeElapsed(),
         time_remaining_seconds: timeLeft,
         distractions_count: distractions.length,
-      });
+      }, userId);
     }
   };
 
   const handleResume = async () => {
     setSessionState("focusing");
-    
-    // Log resume event
-    if (currentSessionId) {
+
+    if (currentSessionId && userId) {
       await logSessionEvent(currentSessionId, "session_resumed", {
         time_elapsed_seconds: getTimeElapsed(),
         time_remaining_seconds: timeLeft,
-      });
+      }, userId);
     }
   };
 
@@ -157,60 +172,56 @@ export default function FocusTab() {
   const handleLogDistraction = async (type: string) => {
     setDistractions([...distractions, type]);
     setShowDistractionModal(false);
-    
-    // Log distraction with timing data
-    if (currentSessionId) {
+
+    if (currentSessionId && userId) {
       await logDistraction(
         currentSessionId,
         type,
         getTimeElapsed(),
-        timeLeft
+        timeLeft,
+        userId
       );
     }
   };
 
   const handleOpenDistractionModal = async () => {
     setShowDistractionModal(true);
-    
-    // Log modal open event
-    if (currentSessionId) {
+
+    if (currentSessionId && userId) {
       await logSessionEvent(currentSessionId, "distraction_modal_opened", {
         time_elapsed_seconds: getTimeElapsed(),
-      });
+      }, userId);
     }
   };
 
   const handleCloseDistractionModal = async () => {
     setShowDistractionModal(false);
-    
-    // Log modal close without logging distraction
-    if (currentSessionId) {
+
+    if (currentSessionId && userId) {
       await logSessionEvent(currentSessionId, "distraction_modal_closed", {
         time_elapsed_seconds: getTimeElapsed(),
-      });
+      }, userId);
     }
   };
 
   const handleOpenAbandonModal = async () => {
     setShowAbandonConfirm(true);
-    
-    // Log abandon modal open
-    if (currentSessionId) {
+
+    if (currentSessionId && userId) {
       await logSessionEvent(currentSessionId, "abandon_modal_opened", {
         time_elapsed_seconds: getTimeElapsed(),
         distractions_count: distractions.length,
-      });
+      }, userId);
     }
   };
 
   const handleCloseAbandonModal = async () => {
     setShowAbandonConfirm(false);
-    
-    // Log that user decided to keep going
-    if (currentSessionId) {
+
+    if (currentSessionId && userId) {
       await logSessionEvent(currentSessionId, "abandon_modal_dismissed", {
         time_elapsed_seconds: getTimeElapsed(),
-      });
+      }, userId);
     }
   };
 
@@ -218,9 +229,8 @@ export default function FocusTab() {
     const actualDuration = getTimeElapsed();
     setSessionState("abandoned");
     setShowAbandonConfirm(false);
-    
-    // Update session in Supabase
-    if (currentSessionId) {
+
+    if (currentSessionId && userId) {
       await updateSession(currentSessionId, {
         status: "abandoned",
         ended_at: new Date().toISOString(),
@@ -228,14 +238,14 @@ export default function FocusTab() {
         total_distractions: distractions.length,
         total_pauses: pauseCountRef.current,
       });
-      
+
       await logSessionEvent(currentSessionId, "session_abandoned", {
         actual_duration_seconds: actualDuration,
         planned_duration_seconds: focusDuration,
         completion_percentage: (actualDuration / focusDuration) * 100,
         distractions_count: distractions.length,
         total_pauses: pauseCountRef.current,
-      });
+      }, userId);
     }
   };
 
@@ -246,8 +256,7 @@ export default function FocusTab() {
     setSessionState("break");
     setTimeLeft(BREAK_DURATION);
     
-    // Mark session as completed
-    if (currentSessionId) {
+    if (currentSessionId && userId) {
       await updateSession(currentSessionId, {
         status: "completed",
         ended_at: new Date().toISOString(),
@@ -255,16 +264,16 @@ export default function FocusTab() {
         total_distractions: distractions.length,
         total_pauses: pauseCountRef.current,
       });
-      
+
       await logSessionEvent(currentSessionId, "session_completed", {
         actual_duration_seconds: focusDuration,
         distractions_count: distractions.length,
         total_pauses: pauseCountRef.current,
-      });
-      
-      await logSessionEvent(currentSessionId, "break_started", {});
+      }, userId);
+
+      await logSessionEvent(currentSessionId, "break_started", {}, userId);
     }
-  }, [currentSessionId, distractions.length, focusDuration, notificationSound]);
+  }, [currentSessionId, userId, distractions.length, focusDuration, notificationSound]);
 
   // Timer effect
   useEffect(() => {
@@ -277,10 +286,9 @@ export default function FocusTab() {
             if (sessionState === "focusing") {
               startBreak();
             } else {
-              // Break completed - play sound repeatedly
               playNotificationSoundRepeating(notificationSound);
-              if (currentSessionId) {
-                logSessionEvent(currentSessionId, "break_completed", {});
+              if (currentSessionId && userId) {
+                logSessionEvent(currentSessionId, "break_completed", {}, userId);
               }
               setSessionState("idle");
               return focusDuration;
@@ -293,22 +301,21 @@ export default function FocusTab() {
     }
 
     return () => clearInterval(interval);
-  }, [sessionState, startBreak, currentSessionId, focusDuration, notificationSound]);
+  }, [sessionState, startBreak, currentSessionId, userId, focusDuration, notificationSound]);
 
-  // Track page visibility (user switching tabs during focus)
   useEffect(() => {
-    if (sessionState !== "focusing" || !currentSessionId) return;
+    if (sessionState !== "focusing" || !currentSessionId || !userId) return;
 
     const handleVisibilityChange = () => {
       const timeElapsed = focusDuration - timeLeft;
       if (document.hidden) {
         logSessionEvent(currentSessionId, "page_blurred", {
           time_elapsed_seconds: timeElapsed,
-        });
+        }, userId);
       } else {
         logSessionEvent(currentSessionId, "page_focused", {
           time_elapsed_seconds: timeElapsed,
-        });
+        }, userId);
       }
     };
 
@@ -316,12 +323,11 @@ export default function FocusTab() {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [sessionState, currentSessionId, timeLeft, focusDuration]);
+  }, [sessionState, currentSessionId, userId, timeLeft, focusDuration]);
 
-  // Log when user views the timer page
   useEffect(() => {
-    logSessionEvent(null, "timer_viewed", {});
-  }, []);
+    if (userId) logSessionEvent(null, "timer_viewed", {}, userId);
+  }, [userId]);
 
   return (
     <>
@@ -517,7 +523,8 @@ export default function FocusTab() {
             {sessionState === "idle" && (
               <button
                 onClick={handleStart}
-                className="btn-primary text-lg px-8 py-4 animate-bounce-subtle"
+                disabled={!userId}
+                className="btn-primary text-lg px-8 py-4 animate-bounce-subtle disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Play className="w-5 h-5 fill-white" />
                 Start Focus

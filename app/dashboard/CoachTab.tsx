@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, Mic, Send } from "lucide-react";
+import { MessageCircle, Mic, Send, Info } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 const PROMPT_SUGGESTIONS = [
   "What are my main distraction patterns this week?",
@@ -59,6 +60,7 @@ function getSpeechRecognition(): (new () => SpeechRecognitionInstance) | null {
 }
 
 export default function CoachTab() {
+  const { userId } = useAuth();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -66,10 +68,19 @@ export default function CoachTab() {
   const [speechSupported, setSpeechSupported] = useState(false);
   const [showMicPermissionPrompt, setShowMicPermissionPrompt] = useState(false);
   const [micPermissionDenied, setMicPermissionDenied] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const baseInputRef = useRef("");
   const hasMicPermissionBeenGrantedRef = useRef(false);
   const sessionStableRef = useRef("");
+
+  useEffect(() => {
+    if (!userId) return;
+    fetch("/api/user/status")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => data?.isNewUser === true && setIsNewUser(true))
+      .catch(() => {});
+  }, [userId]);
 
   // Detect speech support after mount to avoid hydration mismatch (window is undefined on server)
   useEffect(() => {
@@ -176,7 +187,7 @@ export default function CoachTab() {
       const res = await fetch("/api/coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, userId: "default-user" }),
+        body: JSON.stringify({ message: text }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -244,6 +255,16 @@ export default function CoachTab() {
           </div>
         </div>
       </div>
+
+      {/* New-user hint: use app more; can ask for general advice meanwhile (hide once they start chatting) */}
+      {isNewUser && !hasMessages && (
+        <div className="mb-4 rounded-2xl border border-primary/20 bg-primary-light dark:bg-primary/10 dark:border-primary/30 px-4 py-3 flex gap-3">
+          <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" aria-hidden />
+          <p className="text-sm text-foreground">
+            Use the app more, log more work sessions, so the coach can learn about you. Meanwhile, you can ask the coach for general focus tips and advice.
+          </p>
+        </div>
+      )}
 
       {/* Scrollable chat area - only visible when there are messages */}
       {hasMessages && (

@@ -1,8 +1,17 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { Moon, Sun, Monitor, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { LogOut, Moon, Sun, Monitor, X } from "lucide-react";
 import { useTheme } from "@/lib/theme";
+import { useAuth } from "@/lib/auth-context";
+
+type CoachPersonalityValue = "strict" | "data_focused" | "encouraging";
+
+const COACH_OPTIONS: { value: CoachPersonalityValue; label: string }[] = [
+  { value: "strict", label: "Strict" },
+  { value: "data_focused", label: "Data-focused" },
+  { value: "encouraging", label: "Encouraging" },
+];
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -11,7 +20,32 @@ interface SettingsPanelProps {
 
 export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const { theme, setTheme } = useTheme();
+  const { signOut } = useAuth();
   const panelRef = useRef<HTMLDivElement>(null);
+  const [coachPersonality, setCoachPersonality] = useState<CoachPersonalityValue | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    fetch("/api/user/preferences")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.coach_personality && COACH_OPTIONS.some((o) => o.value === data.coach_personality)) {
+          setCoachPersonality(data.coach_personality);
+        } else {
+          setCoachPersonality("data_focused");
+        }
+      })
+      .catch(() => setCoachPersonality("data_focused"));
+  }, [isOpen]);
+
+  const handleCoachPersonalityChange = (value: CoachPersonalityValue) => {
+    setCoachPersonality(value);
+    fetch("/api/user/preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ coach_personality: value }),
+    }).catch(() => {});
+  };
 
   // Close on click outside
   useEffect(() => {
@@ -109,11 +143,55 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </div>
         </div>
 
-        {/* Additional settings can be added here */}
+        {/* Coach personality */}
         <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
-          <p className="text-xs text-muted text-center">
-            More settings coming soon
-          </p>
+          <label className="text-sm font-medium text-muted mb-3 block">
+            Coach personality
+          </label>
+          <p className="text-xs text-muted mb-3">You can change this anytime.</p>
+          <div className="grid grid-cols-3 gap-2">
+            {COACH_OPTIONS.map((option) => {
+              const isActive = coachPersonality === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => handleCoachPersonalityChange(option.value)}
+                  className={`flex flex-col items-center justify-center gap-1 p-3 rounded-2xl border-2 transition-all ${
+                    isActive
+                      ? "border-primary bg-primary-light dark:bg-primary/20"
+                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-gray-50 dark:bg-gray-800"
+                  }`}
+                >
+                  <span
+                    className={`text-sm font-medium text-center ${
+                      isActive ? "text-primary" : "text-foreground"
+                    }`}
+                  >
+                    {option.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Account */}
+        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
+          <label className="text-sm font-medium text-muted mb-3 block">
+            Account
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              signOut();
+            }}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium text-muted hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-foreground transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            Log out
+          </button>
         </div>
       </div>
     </div>

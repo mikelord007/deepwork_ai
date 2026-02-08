@@ -1,4 +1,4 @@
-import { supabase, USER_ID, isSupabaseConfigured } from "./supabase";
+import { supabase, isSupabaseConfigured } from "./supabase";
 
 export interface FocusMetrics {
   totalSessions: number;
@@ -42,13 +42,13 @@ export interface RecentSession {
 }
 
 // Fetch overall focus metrics
-export async function getFocusMetrics(): Promise<FocusMetrics | null> {
+export async function getFocusMetrics(userId: string): Promise<FocusMetrics | null> {
   if (!isSupabaseConfigured() || !supabase) return null;
 
   const { data: sessions, error } = await supabase
     .from("focus_sessions")
     .select("*")
-    .eq("user_id", USER_ID)
+    .eq("user_id", userId)
     .in("status", ["completed", "abandoned"]);
 
   if (error) {
@@ -151,13 +151,13 @@ function calculateStreaks(completedSessions: Array<{ started_at: string }>) {
 }
 
 // Fetch distraction breakdown
-export async function getDistractionBreakdown(): Promise<DistractionBreakdown[]> {
+export async function getDistractionBreakdown(userId: string): Promise<DistractionBreakdown[]> {
   if (!isSupabaseConfigured() || !supabase) return [];
 
   const { data, error } = await supabase
     .from("distractions")
     .select("distraction_type")
-    .eq("user_id", USER_ID);
+    .eq("user_id", userId);
 
   if (error || !data) {
     console.error("Failed to fetch distractions:", error);
@@ -181,7 +181,7 @@ export async function getDistractionBreakdown(): Promise<DistractionBreakdown[]>
 }
 
 // Fetch daily stats for the last N days
-export async function getDailyStats(days: number = 7): Promise<DailyStats[]> {
+export async function getDailyStats(userId: string, days: number = 7): Promise<DailyStats[]> {
   if (!isSupabaseConfigured() || !supabase) return [];
 
   const startDate = new Date(Date.now() - days * 86400000).toISOString();
@@ -189,7 +189,7 @@ export async function getDailyStats(days: number = 7): Promise<DailyStats[]> {
   const { data: sessions, error } = await supabase
     .from("focus_sessions")
     .select("*")
-    .eq("user_id", USER_ID)
+    .eq("user_id", userId)
     .gte("started_at", startDate)
     .in("status", ["completed", "abandoned"]);
 
@@ -227,13 +227,13 @@ export async function getDailyStats(days: number = 7): Promise<DailyStats[]> {
 }
 
 // Fetch hourly patterns
-export async function getHourlyPatterns(): Promise<HourlyPattern[]> {
+export async function getHourlyPatterns(userId: string): Promise<HourlyPattern[]> {
   if (!isSupabaseConfigured() || !supabase) return [];
 
   const { data: sessions, error } = await supabase
     .from("focus_sessions")
     .select("started_at, status")
-    .eq("user_id", USER_ID)
+    .eq("user_id", userId)
     .in("status", ["completed", "abandoned"]);
 
   if (error || !sessions) {
@@ -264,13 +264,13 @@ export async function getHourlyPatterns(): Promise<HourlyPattern[]> {
 }
 
 // Fetch recent sessions
-export async function getRecentSessions(limit: number = 10): Promise<RecentSession[]> {
+export async function getRecentSessions(userId: string, limit: number = 10): Promise<RecentSession[]> {
   if (!isSupabaseConfigured() || !supabase) return [];
 
   const { data, error } = await supabase
     .from("focus_sessions")
     .select("*")
-    .eq("user_id", USER_ID)
+    .eq("user_id", userId)
     .in("status", ["completed", "abandoned"])
     .order("started_at", { ascending: false })
     .limit(limit);

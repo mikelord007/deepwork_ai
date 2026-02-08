@@ -10,9 +10,10 @@ function getSupabase(): SupabaseClient | null {
 /**
  * Fetches focus data for a user and returns a text summary for the coach LLM.
  * Used server-side only (API route).
+ * Pass an authenticated supabase client when calling from an API route (RLS applies).
  */
-export async function getCoachContext(userId: string): Promise<string> {
-  const supabase = getSupabase();
+export async function getCoachContext(userId: string, supabaseClient?: SupabaseClient | null): Promise<string> {
+  const supabase = supabaseClient ?? getSupabase();
   if (!supabase) return "No focus data available (Supabase not configured).";
 
   const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();

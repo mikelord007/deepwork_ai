@@ -113,7 +113,7 @@ export default function HomePage() {
               <a href="#faq" className="text-sm text-muted hover:text-foreground transition-colors">FAQ</a>
             </div>
 
-            <a href="/dashboard" className="btn-secondary text-xs sm:text-sm px-3 sm:px-5">
+            <a href="/login" className="btn-secondary text-xs sm:text-sm px-3 sm:px-5">
               Login
             </a>
           </div>
@@ -138,7 +138,7 @@ export default function HomePage() {
               </p>
 
               <div className="flex flex-wrap items-center gap-4">
-                <a href="/dashboard" className="btn-primary text-base inline-flex">
+                <a href="/login" className="btn-primary text-base inline-flex">
                   Login
                   <ArrowRight className="w-4 h-4" />
                 </a>
@@ -416,7 +416,7 @@ export default function HomePage() {
                 Sign in to start your focus sessions and track your progress.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
-                <a href="/dashboard" className="btn-primary inline-flex">
+                <a href="/login" className="btn-primary inline-flex">
                   Login
                   <ArrowRight className="w-4 h-4" />
                 </a>

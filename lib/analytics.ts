@@ -1,4 +1,4 @@
-import { supabase, USER_ID, isSupabaseConfigured } from "./supabase";
+import { supabase, isSupabaseConfigured } from "./supabase";
 
 // Event types for comprehensive tracking
 export type SessionEventType =
@@ -32,7 +32,10 @@ export interface SessionEventData {
 }
 
 // Create a new focus session
-export async function createSession(plannedDurationSeconds: number = 25 * 60) {
+export async function createSession(
+  plannedDurationSeconds: number = 25 * 60,
+  userId: string
+) {
   if (!isSupabaseConfigured() || !supabase) {
     console.log("[Analytics] Supabase not configured, skipping session creation");
     return null;
@@ -41,7 +44,7 @@ export async function createSession(plannedDurationSeconds: number = 25 * 60) {
   const { data, error } = await supabase
     .from("focus_sessions")
     .insert({
-      user_id: USER_ID,
+      user_id: userId,
       planned_duration_seconds: plannedDurationSeconds,
       status: "in_progress",
       started_at: new Date().toISOString(),
@@ -54,10 +57,7 @@ export async function createSession(plannedDurationSeconds: number = 25 * 60) {
     return null;
   }
 
-  // Log the session start event
-  await logSessionEvent(data.id, "session_started", {
-    planned_duration_seconds: plannedDurationSeconds,
-  });
+  await logSessionEvent(data.id, "session_started", { planned_duration_seconds: plannedDurationSeconds }, userId);
 
   return data;
 }
@@ -89,17 +89,17 @@ export async function updateSession(
 export async function logSessionEvent(
   sessionId: string | null,
   eventType: SessionEventType,
-  eventData: SessionEventData = {}
+  eventData: SessionEventData = {},
+  userId: string
 ) {
   if (!isSupabaseConfigured() || !supabase) return;
 
   const { error } = await supabase.from("session_events").insert({
     session_id: sessionId,
-    user_id: USER_ID,
+    user_id: userId,
     event_type: eventType,
     event_data: eventData,
     timestamp: new Date().toISOString(),
-    // Browser/device context for behavior analysis
     context: {
       user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
       screen_width: typeof window !== "undefined" ? window.innerWidth : null,
@@ -119,14 +119,14 @@ export async function logDistraction(
   sessionId: string,
   distractionType: string,
   timeElapsedSeconds: number,
-  timeRemainingSeconds: number
+  timeRemainingSeconds: number,
+  userId: string
 ) {
   if (!isSupabaseConfigured() || !supabase) return;
 
-  // Insert into dedicated distractions table for easy querying
   const { error: distractionError } = await supabase.from("distractions").insert({
     session_id: sessionId,
-    user_id: USER_ID,
+    user_id: userId,
     distraction_type: distractionType,
     time_into_session_seconds: timeElapsedSeconds,
     time_remaining_seconds: timeRemainingSeconds,
@@ -137,10 +137,9 @@ export async function logDistraction(
     console.error("Failed to log distraction:", distractionError);
   }
 
-  // Also log as an event for the full event stream
   await logSessionEvent(sessionId, "distraction_logged", {
     distraction_type: distractionType,
     time_elapsed_seconds: timeElapsedSeconds,
     time_remaining_seconds: timeRemainingSeconds,
-  });
+  }, userId);
 }

@@ -26,8 +26,10 @@ import {
   type RecentSession,
 } from "@/lib/metrics";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
 
 export default function MetricsTab() {
+  const { userId } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [metrics, setMetrics] = useState<FocusMetrics | null>(null);
   const [distractions, setDistractions] = useState<DistractionBreakdown[]>([]);
@@ -36,14 +38,18 @@ export default function MetricsTab() {
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
 
   const loadData = async () => {
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     const [metricsData, distractionsData, dailyData, hourlyData, recentData] =
       await Promise.all([
-        getFocusMetrics(),
-        getDistractionBreakdown(),
-        getDailyStats(7),
-        getHourlyPatterns(),
-        getRecentSessions(5),
+        getFocusMetrics(userId),
+        getDistractionBreakdown(userId),
+        getDailyStats(userId, 7),
+        getHourlyPatterns(userId),
+        getRecentSessions(userId, 5),
       ]);
     setMetrics(metricsData);
     setDistractions(distractionsData);
@@ -55,7 +61,7 @@ export default function MetricsTab() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [userId]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);

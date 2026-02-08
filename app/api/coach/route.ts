@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { COACH_SYSTEM_PROMPT } from "@/lib/coach-prompts";
+import { createClient } from "@/lib/supabase-server";
+import {
+  COACH_SYSTEM_PROMPT,
+  getPersonalityTone,
+  formatPreferencesForCoach,
+  type UserPreferencesForCoach,
+  type CoachPersonality,
+} from "@/lib/coach-prompts";
+import { getCoachContext } from "@/lib/coach-context";
 import { COACH_TOOLS, executeCoachTool } from "@/lib/coach-tools";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -41,7 +48,6 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const message = typeof body?.message === "string" ? body.message.trim() : "";
-    const userId = typeof body?.userId === "string" ? body.userId : "default-user";
 
     if (!message) {
       return NextResponse.json(
@@ -50,12 +56,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const supabase = url && key ? createClient(url, key) : null;
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const userId = user.id;
+
+    let systemContent = COACH_SYSTEM_PROMPT;
+    const { data: prefsRow } = await supabase.from("user_preferences").select("*").eq("user_id", userId).maybeSingle();
+    if (prefsRow) {
+      const tone = getPersonalityTone((prefsRow.coach_personality as CoachPersonality) ?? "data_focused");
+      const contextBlock = formatPreferencesForCoach(prefsRow as UserPreferencesForCoach);
+      if (tone) systemContent += "\n\n" + tone;
+      if (contextBlock) systemContent += "\n\nUser context:\n" + contextBlock;
+      const focusData = await getCoachContext(userId, supabase);
+      if (focusData) systemContent += "\n\n" + focusData;
+    }
 
     const messages: OpenRouterMessage[] = [
-      { role: "system", content: COACH_SYSTEM_PROMPT },
+      { role: "system", content: systemContent },
       { role: "user", content: message },
     ];
 

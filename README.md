@@ -36,6 +36,10 @@ Landing page for **deepwork.ai**, an AI focus coach that understands how your mi
 - `app/globals.css` – Tailwind and global styles
 - `tailwind.config.ts` – Tailwind theming (colors, shadows, etc.)
 
+## Opik (Comet) – Hackathon
+
+We use **Opik** for observability (LLM traces), evaluation (coach + weekly summary datasets), and systematic improvement (before/after eval with a regression prompt). See **[docs/OPIK_HACKATHON.md](docs/OPIK_HACKATHON.md)** for the full narrative and judge checklist.
+
 ## AI Coach architecture
 
 The Focus Coach is a **tool-calling agent** (OpenRouter + Gemini 2.5 Flash). It does not receive raw DB dumps: it gets data only by calling Supabase RPCs when the model selects a tool.

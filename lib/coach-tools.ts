@@ -61,6 +61,20 @@ export const COACH_TOOLS = [
   {
     type: "function" as const,
     function: {
+      name: "get_distractions_by_location",
+      description: "Get distraction counts by type for each place (Home, Office, Cafe, Other). Use when the user asks about distractions at a specific location (e.g. 'at home what distractions do I face?', 'distractions when I work from the office').",
+      parameters: {
+        type: "object",
+        properties: {
+          user_id: { type: "string", description: "User identifier" },
+        },
+        required: ["user_id"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
       name: "get_recent_changes",
       description: "Get recent coach insights or logged notes for the user for the last N days.",
       parameters: {
@@ -125,6 +139,13 @@ export async function executeCoachTool(
     }
     case "get_focus_by_location": {
       const { data, error } = await supabase.rpc("get_focus_by_location", {
+        p_user_id: uid,
+      });
+      if (error) return JSON.stringify({ error: error.message });
+      return JSON.stringify(data ?? {});
+    }
+    case "get_distractions_by_location": {
+      const { data, error } = await supabase.rpc("get_distractions_by_location", {
         p_user_id: uid,
       });
       if (error) return JSON.stringify({ error: error.message });

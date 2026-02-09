@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase-server";
 
 export async function POST(
   _request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -14,7 +14,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const id = context.params?.id;
+    const { id } = await context.params;
     if (!id) {
       return NextResponse.json({ error: "Note id required" }, { status: 400 });
     }

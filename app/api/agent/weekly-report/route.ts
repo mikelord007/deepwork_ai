@@ -91,7 +91,12 @@ export async function GET() {
     const daily = (trendsRes.data?.daily as { total_sessions: number; total_focus_minutes: number; avg_session_minutes: number; total_distractions: number }[]) ?? [];
     const windows = (windowsRes.data?.windows as { hour_of_day: number; sessions_started: number; sessions_completed: number; completion_rate: number }[]) ?? [];
     const byType = (patternsRes.data?.by_type as { type: string; count: number }[]) ?? [];
-    const prefs = prefsRes.data ?? {};
+    const prefs = (prefsRes.data ?? {}) as {
+      default_focus_minutes?: number;
+      default_break_minutes?: number;
+      max_sessions_per_day?: number;
+      session_rules?: string[];
+    };
 
     const totalSessions = daily.reduce((s, d) => s + (d.total_sessions ?? 0), 0);
     const totalMinutes = daily.reduce((s, d) => s + (d.total_focus_minutes ?? 0), 0);

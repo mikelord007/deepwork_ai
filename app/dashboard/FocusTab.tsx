@@ -23,6 +23,7 @@ import {
   logSessionEvent,
   logDistraction,
 } from "@/lib/analytics";
+import { reverseGeocode } from "@/lib/geocode";
 import {
   playNotificationSoundRepeating,
   previewSound,
@@ -219,8 +220,27 @@ export default function FocusTab() {
     const session = await createSession(focusDuration, userId);
     if (session) {
       setCurrentSessionId(session.id);
+      captureLocationForSession(session.id);
     }
   };
+
+  function captureLocationForSession(sessionId: string) {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const result = await reverseGeocode(lat, lon);
+        await updateSession(sessionId, {
+          latitude: lat,
+          longitude: lon,
+          location_label: result?.location_label ?? "Other",
+        });
+      },
+      () => {},
+      { timeout: 5000, maximumAge: 60000 }
+    );
+  }
 
   const handlePause = async () => {
     setSessionState("paused");

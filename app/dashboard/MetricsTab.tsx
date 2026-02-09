@@ -8,6 +8,7 @@ import {
   Clock,
   Flame,
   Info,
+  MapPin,
   RefreshCw,
   Target,
   TrendingUp,
@@ -20,14 +21,17 @@ import {
   getDailyStats,
   getHourlyPatterns,
   getRecentSessions,
+  getSessionsWithLocation,
   type FocusMetrics,
   type DistractionBreakdown,
   type DailyStats,
   type HourlyPattern,
   type RecentSession,
+  type SessionWithLocation,
 } from "@/lib/metrics";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import LocationMap, { type LocationStats } from "@/app/components/LocationMap";
 
 export default function MetricsTab() {
   const { userId } = useAuth();
@@ -37,6 +41,9 @@ export default function MetricsTab() {
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [hourlyPatterns, setHourlyPatterns] = useState<HourlyPattern[]>([]);
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
+  const [sessionsWithLocation, setSessionsWithLocation] = useState<SessionWithLocation[]>([]);
+  const [mapKey, setMapKey] = useState(0);
+  const [mapReady, setMapReady] = useState(false);
 
   const loadData = async () => {
     if (!userId) {
@@ -44,25 +51,61 @@ export default function MetricsTab() {
       return;
     }
     setIsLoading(true);
-    const [metricsData, distractionsData, dailyData, hourlyData, recentData] =
+    const [metricsData, distractionsData, dailyData, hourlyData, recentData, locationData] =
       await Promise.all([
         getFocusMetrics(userId),
         getDistractionBreakdown(userId),
         getDailyStats(userId, 7),
         getHourlyPatterns(userId),
         getRecentSessions(userId, 5),
+        getSessionsWithLocation(userId),
       ]);
     setMetrics(metricsData);
     setDistractions(distractionsData);
     setDailyStats(dailyData);
     setHourlyPatterns(hourlyData);
     setRecentSessions(recentData);
+    setSessionsWithLocation(locationData);
+    setMapKey((k) => k + 1);
     setIsLoading(false);
   };
+
+  const locationStats: LocationStats[] = (() => {
+    const byLabel = new Map<string, { lat: number; lon: number; total: number; completed: number }>();
+    for (const s of sessionsWithLocation) {
+      const label = s.location_label ?? "Other";
+      const cur = byLabel.get(label);
+      if (!cur) {
+        byLabel.set(label, { lat: s.latitude, lon: s.longitude, total: 1, completed: s.status === "completed" ? 1 : 0 });
+      } else {
+        cur.total += 1;
+        if (s.status === "completed") cur.completed += 1;
+      }
+    }
+    return Array.from(byLabel.entries()).map(([label, d]) => ({
+      label,
+      lat: d.lat,
+      lon: d.lon,
+      total: d.total,
+      completed: d.completed,
+      completionRate: d.total > 0 ? Math.round((d.completed / d.total) * 100) : 0,
+    }));
+  })();
 
   useEffect(() => {
     loadData();
   }, [userId]);
+
+  // Delay mounting the map so the card is painted and the dynamic chunk can load (fixes map not showing after in-app Refresh)
+  useEffect(() => {
+    if (!isLoading && locationStats.length > 0) {
+      setMapReady(false);
+      const t = setTimeout(() => setMapReady(true), 200);
+      return () => clearTimeout(t);
+    } else {
+      setMapReady(false);
+    }
+  }, [isLoading, locationStats.length]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -103,7 +146,7 @@ export default function MetricsTab() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-120px)] md:min-h-screen flex flex-col justi max-w-6xl mx-auto px-4 py-8 sm:py-12">
+    <div className="min-h-[calc(100vh-120px)] md:min-h-screen flex flex-col max-w-6xl mx-auto px-4 py-8 sm:py-12">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Focus Metrics</h2>
@@ -200,8 +243,19 @@ export default function MetricsTab() {
           </div>
         </div>
       ) : metrics && metrics.totalSessions === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center min-h-[50vh]">
-          <div className="text-center">
+        <div className="space-y-6">
+          <div className="card">
+            <div className="flex items-center gap-2 mb-6">
+              <MapPin className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold">Focus by location</h3>
+            </div>
+            <div className="h-64 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-center">
+              <p className="text-muted text-center px-4 text-sm max-w-sm">
+                No location data yet. Allow location when you start a focus session to see completion rates by place on the map.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="w-20 h-20 rounded-full bg-primary-light dark:bg-primary/20 flex items-center justify-center mx-auto mb-6">
               <BarChart3 className="w-10 h-10 text-primary" />
             </div>
@@ -334,6 +388,24 @@ export default function MetricsTab() {
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="card">
+            <div className="flex items-center gap-2 mb-6">
+              <MapPin className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold">Focus by location</h3>
+            </div>
+            {locationStats.length === 0 ? (
+              <div className="h-64 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-center">
+                <p className="text-muted text-center px-4 text-sm max-w-sm">
+                  No location data yet. Allow location when you start a focus session to see completion rates by place on the map.
+                </p>
+              </div>
+            ) : !mapReady ? (
+              <div className="h-64 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 animate-pulse" />
+            ) : (
+              <LocationMap key={mapKey} locations={locationStats} />
+            )}
           </div>
 
           <div className="card">

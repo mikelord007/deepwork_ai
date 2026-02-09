@@ -65,7 +65,7 @@ export async function createSession(
   return data;
 }
 
-// Update session status
+// Update session status (and optional location)
 export async function updateSession(
   sessionId: string,
   updates: {
@@ -74,6 +74,9 @@ export async function updateSession(
     actual_duration_seconds?: number;
     total_distractions?: number;
     total_pauses?: number;
+    latitude?: number;
+    longitude?: number;
+    location_label?: string | null;
   }
 ) {
   if (!isSupabaseConfigured() || !supabase) return;

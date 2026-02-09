@@ -47,6 +47,20 @@ export const COACH_TOOLS = [
   {
     type: "function" as const,
     function: {
+      name: "get_focus_by_location",
+      description: "Get focus stats by place (Office, Cafe, Home, Other): total sessions, completed, completion rate. Ordered best to worst by completion rate.",
+      parameters: {
+        type: "object",
+        properties: {
+          user_id: { type: "string", description: "User identifier" },
+        },
+        required: ["user_id"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
       name: "get_recent_changes",
       description: "Get recent coach insights or logged notes for the user for the last N days.",
       parameters: {
@@ -104,6 +118,13 @@ export async function executeCoachTool(
     }
     case "get_distraction_patterns": {
       const { data, error } = await supabase.rpc("get_distraction_patterns", {
+        p_user_id: uid,
+      });
+      if (error) return JSON.stringify({ error: error.message });
+      return JSON.stringify(data ?? {});
+    }
+    case "get_focus_by_location": {
+      const { data, error } = await supabase.rpc("get_focus_by_location", {
         p_user_id: uid,
       });
       if (error) return JSON.stringify({ error: error.message });

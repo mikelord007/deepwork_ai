@@ -12,13 +12,16 @@
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.93.2",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.469.0",
     "next": "15.0.7",
     "react": "18.3.1",
     "react-dom": "18.3.1",
+    "react-leaflet": "^4.2.1",
     "react-markdown": "^10.1.0"
   },
   "devDependencies": {
+    "@types/leaflet": "^1.9.21",
     "@types/node": "^22.7.4",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",

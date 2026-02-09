@@ -75,6 +75,7 @@ async function wipe() {
   // Derived tables
   await supabase.from("coach_memory").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("focus_anomalies").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await supabase.from("location_focus_stats").delete().like("user_id", "%");
   await supabase.from("weekly_focus_patterns").delete().like("user_id", "%");
   await supabase.from("daily_focus_stats").delete().like("user_id", "%");
 
@@ -83,6 +84,13 @@ async function wipe() {
 
 async function seed() {
   console.log("Seeding realistic mock data...\n");
+
+  const LOCATIONS: { label: string; lat: number; lon: number }[] = [
+    { label: "Office", lat: 37.784, lon: -122.409 },
+    { label: "Cafe", lat: 37.787, lon: -122.398 },
+    { label: "Home", lat: 37.771, lon: -122.421 },
+    { label: "Other", lat: 37.798, lon: -122.392 },
+  ];
 
   const sessions: Array<{
     user_id: string;
@@ -93,6 +101,9 @@ async function seed() {
     ended_at: string;
     total_distractions: number;
     total_pauses: number;
+    latitude?: number;
+    longitude?: number;
+    location_label?: string;
   }> = [];
 
   // Last 50 days; more sessions in recent weeks (habit building)
@@ -122,6 +133,9 @@ async function seed() {
       const numDistractions = completed ? randomInt(0, 3) : randomInt(0, 5);
       const numPauses = randomInt(0, 2);
 
+      const loc = Math.random() < 0.6 ? randomChoice(LOCATIONS) : null;
+      const jitter = () => (Math.random() - 0.5) * 0.01;
+
       sessions.push({
         user_id: USER_ID,
         planned_duration_seconds: plannedDuration,
@@ -131,6 +145,11 @@ async function seed() {
         ended_at: endedAt.toISOString(),
         total_distractions: numDistractions,
         total_pauses: numPauses,
+        ...(loc && {
+          latitude: loc.lat + jitter(),
+          longitude: loc.lon + jitter(),
+          location_label: loc.label,
+        }),
       });
     }
   }

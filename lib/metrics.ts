@@ -41,6 +41,14 @@ export interface RecentSession {
   distractions: number;
 }
 
+export interface SessionWithLocation {
+  id: string;
+  latitude: number;
+  longitude: number;
+  location_label: string | null;
+  status: string;
+}
+
 // Fetch overall focus metrics
 export async function getFocusMetrics(userId: string): Promise<FocusMetrics | null> {
   if (!isSupabaseConfigured() || !supabase) return null;
@@ -299,5 +307,31 @@ export async function getRecentSessions(userId: string, limit: number = 10): Pro
     status: s.status,
     durationMinutes: Math.round((s.actual_duration_seconds || 0) / 60),
     distractions: s.total_distractions || 0,
+  }));
+}
+
+// Fetch sessions that have location data (for map and completion-by-place).
+// Location is not part of derived analytics (daily_focus_stats / refresh_derived_analytics); aggregates are computed from focus_sessions here.
+export async function getSessionsWithLocation(userId: string): Promise<SessionWithLocation[]> {
+  if (!isSupabaseConfigured() || !supabase) return [];
+
+  const { data, error } = await supabase
+    .from("focus_sessions")
+    .select("id, latitude, longitude, location_label, status")
+    .eq("user_id", userId)
+    .not("latitude", "is", null)
+    .in("status", ["completed", "abandoned"]);
+
+  if (error || !data) {
+    console.error("Failed to fetch sessions with location:", error);
+    return [];
+  }
+
+  return data.map((s) => ({
+    id: s.id,
+    latitude: s.latitude as number,
+    longitude: s.longitude as number,
+    location_label: s.location_label ?? null,
+    status: s.status,
   }));
 }

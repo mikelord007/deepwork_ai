@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import { MessageCircle, Mic, Send, Info } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { getAgentDisplayName } from "@/lib/agent";
@@ -300,7 +301,13 @@ export default function CoachTab() {
                     : "bg-gray-100 dark:bg-gray-800 text-foreground"
                 }`}
               >
-                <p className="text-sm">{msg.content}</p>
+                {msg.role === "user" ? (
+                  <p className="text-sm">{msg.content}</p>
+                ) : (
+                  <div className="text-sm [&_p]:my-2 first:[&_p]:mt-0 last:[&_p]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:my-0.5 [&_strong]:font-semibold">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                )}
               </div>
             </div>
           ))}

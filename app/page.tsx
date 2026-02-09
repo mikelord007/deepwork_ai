@@ -111,6 +111,7 @@ export default function HomePage() {
               <a href="#how-it-works" className="text-sm text-muted hover:text-foreground transition-colors">How it works</a>
               <a href="#testimonials" className="text-sm text-muted hover:text-foreground transition-colors">Testimonials</a>
               <a href="#faq" className="text-sm text-muted hover:text-foreground transition-colors">FAQ</a>
+              <a href="/opik" className="text-sm text-muted hover:text-foreground transition-colors">Opik usage</a>
             </div>
 
             <a href="/login" className="btn-secondary text-xs sm:text-sm px-3 sm:px-5">

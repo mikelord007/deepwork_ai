@@ -88,9 +88,6 @@ async function main() {
   console.log("Experiment Name:", result.experimentName);
   console.log("Result URL:", result.resultUrl ?? "(check Opik dashboard)");
   console.log("Test results:", result.testResults.length);
-  if (result.averageScores && Object.keys(result.averageScores).length > 0) {
-    console.log("Average scores:", result.averageScores);
-  }
 }
 
 main().catch((err) => {

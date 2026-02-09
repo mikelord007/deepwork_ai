@@ -25,7 +25,7 @@ export default function OpikPage() {
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
         <h1 className="font-heading text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-2">
-          How we improve the system using Opik
+          How we improved the system using Opik
         </h1>
         <p className="text-lg text-[var(--muted)] mb-12">
           We use <strong className="text-foreground">Opik by Comet</strong> for observability, evaluation, and
@@ -48,11 +48,6 @@ export default function OpikPage() {
               request, and the reply. Each OpenRouter call (including tool-use rounds in the coach) is logged
               as a child span.
             </p>
-            <p className="text-[var(--muted)] text-sm">
-              In the Opik dashboard → <strong>Observability → Traces</strong>, we can open any request to see
-              exactly what was sent and what came back. That lets us debug “why did the coach say that?”,
-              inspect prompts and responses, and spot errors or slow calls.
-            </p>
           </div>
 
           <div className="card">
@@ -71,11 +66,7 @@ export default function OpikPage() {
               summary</strong>, we have 3 synthetic weeks. We score outputs with <strong>AnswerRelevance</strong>:
               does the answer address the question?
             </p>
-            <p className="text-[var(--muted)] text-sm">
-              Each run creates an experiment in Opik → <strong>Evaluation / Experiments</strong>, with scores per
-              item and averages. We run these locally with <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs">npm run eval:coach</code> and{" "}
-              <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs">npm run eval:weekly</code>.
-            </p>
+
           </div>
 
           <div className="card">
@@ -92,15 +83,6 @@ export default function OpikPage() {
               with two prompts: a deliberately weak “regression” prompt (generic assistant, no focus rules) and
               our real focus-agent prompt. The regression run gets lower AnswerRelevance scores; the baseline
               run gets higher scores. In Opik we compare the two experiments to see the improvement.
-            </p>
-            <p className="text-[var(--muted)] text-sm mb-3">
-              That’s our systematic improvement story: we used Opik to (1) measure a bad variant, (2) rely on
-              the real prompt as the fix, (3) re-run eval and show better scores. Going forward, we can run
-              evals after any prompt or model change to catch regressions and track progress.
-            </p>
-            <p className="text-[var(--muted)] text-sm">
-              Experiments to compare in Opik: <strong>Coach Eval (regression – generic prompt)</strong> vs{" "}
-              <strong>Coach Eval (baseline – focus agent prompt)</strong>.
             </p>
           </div>
         </section>

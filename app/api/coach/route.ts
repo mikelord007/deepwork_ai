@@ -9,6 +9,7 @@ import {
 } from "@/lib/coach-prompts";
 import { getCoachContext } from "@/lib/coach-context";
 import { COACH_TOOLS, executeCoachTool } from "@/lib/coach-tools";
+import { getOpik, flushOpik } from "@/lib/opik";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "google/gemini-2.5-flash";
@@ -80,12 +81,16 @@ export async function POST(request: NextRequest) {
       { role: "user", content: message },
     ];
 
+    const opik = getOpik();
+    const trace = opik?.trace({ name: "Coach chat", input: { message } });
+
     let lastContent: string | null = null;
     let iterations = 0;
 
-    while (iterations < MAX_TOOL_ITERATIONS) {
-      iterations++;
-      const res = await fetch(OPENROUTER_URL, {
+    try {
+      while (iterations < MAX_TOOL_ITERATIONS) {
+        iterations++;
+        const res = await fetch(OPENROUTER_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,6 +126,19 @@ export async function POST(request: NextRequest) {
 
       lastContent = msg.content ?? null;
 
+      if (trace) {
+        const span = trace.span({
+          name: "OpenRouter",
+          type: "llm",
+          input: { model: MODEL, messageCount: messages.length },
+          output: {
+            content: msg.content ?? undefined,
+            tool_calls: msg.tool_calls?.length,
+          },
+        });
+        span.end();
+      }
+
       if (msg.tool_calls && msg.tool_calls.length > 0) {
         messages.push({
           role: "assistant",
@@ -152,15 +170,20 @@ export async function POST(request: NextRequest) {
       break;
     }
 
-    const reply = (lastContent ?? "").trim();
-    if (!reply) {
-      return NextResponse.json(
-        { error: "No reply from model" },
-        { status: 500 }
-      );
-    }
+      const reply = (lastContent ?? "").trim();
+      if (!reply) {
+        return NextResponse.json(
+          { error: "No reply from model" },
+          { status: 500 }
+        );
+      }
 
-    return NextResponse.json({ reply });
+      trace?.update({ output: { reply } });
+      return NextResponse.json({ reply });
+    } finally {
+      trace?.end();
+      await flushOpik();
+    }
   } catch (err) {
     console.error("[Coach API]", err);
     return NextResponse.json(

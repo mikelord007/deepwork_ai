@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { getOpik, flushOpik } from "@/lib/opik";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "google/gemini-2.5-flash";
@@ -24,6 +25,9 @@ Data:
 
 Reply with only the 2–3 sentences, nothing else.`;
 
+  const opik = getOpik();
+  const trace = opik?.trace({ name: "Weekly report summary", input: { prompt: prompt.slice(0, 500) } });
+
   try {
     const res = await fetch(OPENROUTER_URL, {
       method: "POST",
@@ -39,9 +43,26 @@ Reply with only the 2–3 sentences, nothing else.`;
     });
     if (!res.ok) return null;
     const data = (await res.json()) as { choices?: { message?: { content?: string | null } }[] };
-    const text = data.choices?.[0]?.message?.content?.trim();
-    return text && text.length > 0 ? text : null;
+    const text = data.choices?.[0]?.message?.content?.trim() ?? null;
+    const summary = text && text.length > 0 ? text : null;
+
+    if (trace) {
+      const span = trace.span({
+        name: "OpenRouter",
+        type: "llm",
+        input: { model: MODEL, promptLength: prompt.length },
+        output: summary ? { summary } : undefined,
+      });
+      span.end();
+    }
+    if (summary) trace?.update({ output: { summary } });
+    trace?.end();
+    await flushOpik();
+
+    return summary;
   } catch {
+    trace?.end();
+    await flushOpik();
     return null;
   }
 }

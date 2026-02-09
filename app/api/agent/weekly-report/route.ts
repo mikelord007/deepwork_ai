@@ -87,20 +87,6 @@ export async function GET() {
     }
 
     const weekStart = getWeekStartUTC(new Date());
-    const { data: cached } = await supabase
-      .from("weekly_reports")
-      .select("summary, learned, plan")
-      .eq("user_id", user.id)
-      .eq("week_start", weekStart)
-      .maybeSingle();
-
-    if (cached) {
-      return NextResponse.json({
-        learned: (cached.learned as string[]) ?? [],
-        plan: (cached.plan as { default_focus_minutes: number; default_break_minutes: number; max_sessions_per_day: number; session_rules: string[] }) ?? {},
-        summary: cached.summary ?? undefined,
-      });
-    }
 
     const [trendsRes, windowsRes, patternsRes, prefsRes] = await Promise.all([
       supabase.rpc("get_focus_trends", { p_user_id: user.id, p_days: 7 }),

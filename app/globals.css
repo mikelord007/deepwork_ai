@@ -179,6 +179,80 @@ body {
   animation: modal-enter 0.2s ease-out;
 }
 
+/* Agent card: traveling border glow (loops) + ambient glow */
+@keyframes agent-glow-travel {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.agent-glow-border,
+.agent-glow-border-static {
+  position: relative;
+  border-radius: 1rem;
+  padding: 5px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06), 0 0 24px rgb(124 106 255 / 0.08), 0 0 48px rgb(124 106 255 / 0.04);
+}
+
+.dark .agent-glow-border,
+.dark .agent-glow-border-static {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15), 0 0 24px rgb(124 106 255 / 0.12), 0 0 48px rgb(124 106 255 / 0.06);
+}
+
+.agent-glow-border::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgb(124 106 255 / 0.2) 36deg,
+    rgb(124 106 255 / 0.7) 72deg,
+    rgb(124 106 255 / 0.2) 108deg,
+    transparent 144deg,
+    transparent 360deg
+  );
+  animation: agent-glow-travel 6s linear infinite;
+  z-index: 0;
+  filter: drop-shadow(0 0 8px rgb(124 106 255 / 0.4)) drop-shadow(0 0 16px rgb(124 106 255 / 0.2));
+}
+
+.agent-glow-border-static::before {
+  content: none;
+}
+
+.agent-glow-border-static::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 5px solid rgb(124 106 255 / 0.2);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.agent-glow-border > *,
+.agent-glow-border-static > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Legacy one-shot glow (optional); traveling glow used by default */
+@keyframes agent-glow {
+  0%, 25% {
+    box-shadow: 0 0 0 2px rgb(124 106 255 / 0.25), 0 0 24px rgb(124 106 255 / 0.18), 0 0 48px rgb(124 106 255 / 0.1);
+  }
+  70%, 100% {
+    box-shadow: 0 0 0 2px rgb(124 106 255 / 0.2);
+  }
+}
+
+.agent-glow-initial {
+  animation: agent-glow 8s ease-out forwards;
+}
+
 /* Onboarding welcome float */
 @keyframes float-gentle {
   0%, 100% {

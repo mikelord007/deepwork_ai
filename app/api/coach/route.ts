@@ -70,9 +70,10 @@ export async function POST(request: NextRequest) {
       const contextBlock = formatPreferencesForCoach(prefsRow as UserPreferencesForCoach);
       if (tone) systemContent += "\n\n" + tone;
       if (contextBlock) systemContent += "\n\nUser context:\n" + contextBlock;
-      const focusData = await getCoachContext(userId, supabase);
-      if (focusData) systemContent += "\n\n" + focusData;
     }
+    const focusData = await getCoachContext(userId, supabase);
+    if (focusData) systemContent += "\n\n" + focusData;
+    systemContent += `\n\nWhen calling tools, use this user_id: "${userId}". Answer using the "User focus data" section above when it contains what the user asked (e.g. completion rate, distractions, session counts). Use tools when you need extra detail (e.g. get_focus_trends for daily breakdown, get_best_focus_windows for best hours). Do not ask the user for their ID or for data that is already in the focus data above.`;
 
     const messages: OpenRouterMessage[] = [
       { role: "system", content: systemContent },

@@ -3,11 +3,16 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Clock,
   Minus,
   Pause,
+  PhoneOff,
   Play,
   Plus,
   RotateCcw,
+  Target,
   Volume2,
   X,
   Zap
@@ -27,11 +32,14 @@ import {
   type SoundType,
 } from "@/lib/sounds";
 import { useAuth } from "@/lib/auth-context";
+import AgentBadge from "@/app/components/AgentBadge";
+import AgentCard from "@/app/components/AgentCard";
+import type { CoachPersonality } from "@/lib/coach-prompts";
 
 const DEFAULT_DURATION = 25 * 60; // 25 minutes in seconds
-const BREAK_DURATION = 5 * 60; // 5 minutes in seconds
+const DEFAULT_BREAK_SECONDS = 5 * 60;
 
-type SessionState = "idle" | "focusing" | "paused" | "break" | "abandoned";
+type SessionState = "idle" | "focusing" | "paused" | "break" | "abandoned" | "reset";
 
 export default function FocusTab() {
   const { userId } = useAuth();
@@ -55,25 +63,67 @@ export default function FocusTab() {
   const [showSoundDropdown, setShowSoundDropdown] = useState(false);
   const stopSoundPreviewRef = useRef<(() => void) | null>(null);
 
+  // Break length (from prefs; used instead of hardcoded 5 min)
+  const [breakDuration, setBreakDuration] = useState(DEFAULT_BREAK_SECONDS);
+  // Agent session suggestions (before-session setup)
+  const [sessionSuggestions, setSessionSuggestions] = useState<{
+    suggestedDurationMinutes: number;
+    suggestedBreakMinutes: number;
+    reason: string | null;
+    defaultFocusMinutes?: number;
+    sessionCountUsed?: number;
+  } | null>(null);
+  const [coachSuggestionDismissed, setCoachSuggestionDismissed] = useState(false);
+  const [showWhyReason, setShowWhyReason] = useState(false);
+  const [sessionRules, setSessionRules] = useState<string[]>([]);
+  const [coachPersonality, setCoachPersonality] = useState<CoachPersonality | null>(null);
+  const [interventionDismissed, setInterventionDismissed] = useState(false);
+  const interventionShownLoggedRef = useRef(false);
+  const [resetCountdown, setResetCountdown] = useState(0);
+  const [agentNotes, setAgentNotes] = useState<{ id: string; type: string; title: string; body: string; suggestion_text: string | null; created_at: string }[]>([]);
+
   // Load saved sound preference
   useEffect(() => {
     setNotificationSound(getSavedSound());
   }, []);
 
-  // Load default session length from user preferences (once)
+  // Load user preferences (focus, break, session rules, personality)
   useEffect(() => {
     if (!userId) return;
     fetch("/api/user/preferences")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data?.default_focus_minutes && typeof data.default_focus_minutes === "number") {
-          const sec = data.default_focus_minutes * 60;
+        if (!data) return;
+        if (data.default_focus_minutes != null && typeof data.default_focus_minutes === "number") {
+          const sec = Math.max(60, Math.min(120 * 60, data.default_focus_minutes * 60));
           setFocusDuration(sec);
           setTimeLeft(sec);
+        }
+        if (data.default_break_minutes != null && typeof data.default_break_minutes === "number") {
+          setBreakDuration(Math.max(60, Math.min(30 * 60, data.default_break_minutes * 60)));
+        }
+        if (Array.isArray(data.session_rules)) {
+          setSessionRules(data.session_rules);
+        }
+        if (data.coach_personality && ["strict", "data_focused", "encouraging"].includes(data.coach_personality)) {
+          setCoachPersonality(data.coach_personality as CoachPersonality);
         }
       })
       .catch(() => {});
   }, [userId]);
+
+  // Load agent session suggestions when idle; do not auto-apply (user chooses in Phase 2)
+  useEffect(() => {
+    if (!userId || sessionState !== "idle") return;
+    fetch("/api/agent/session-suggestions")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data) return;
+        setSessionSuggestions(data);
+        setCoachSuggestionDismissed(false); // show coach card again when we have fresh data
+      })
+      .catch(() => {});
+  }, [userId, sessionState]);
 
   const handleSoundChange = (sound: SoundType) => {
     // Stop any current repeating preview
@@ -108,6 +158,39 @@ export default function FocusTab() {
     const newDuration = minutes * 60;
     setFocusDuration(newDuration);
     setTimeLeft(newDuration);
+    if (userId) {
+      fetch("/api/user/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ default_focus_minutes: minutes }),
+      }).catch(() => {});
+    }
+  };
+
+  const setBreakMinutes = (minutes: number) => {
+    const sec = Math.max(60, Math.min(30 * 60, minutes * 60));
+    setBreakDuration(sec);
+    if (userId) {
+      fetch("/api/user/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ default_break_minutes: minutes }),
+      }).catch(() => {});
+    }
+  };
+
+  const toggleSessionRule = (rule: "phone_out_of_reach" | "single_task_only") => {
+    const next = sessionRules.includes(rule)
+      ? sessionRules.filter((r) => r !== rule)
+      : [...sessionRules, rule];
+    setSessionRules(next);
+    if (userId) {
+      fetch("/api/user/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_rules: next }),
+      }).catch(() => {});
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -116,9 +199,12 @@ export default function FocusTab() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const progress = sessionState === "break" 
-    ? ((BREAK_DURATION - timeLeft) / BREAK_DURATION) * 100
-    : ((focusDuration - timeLeft) / focusDuration) * 100;
+  const progress =
+    sessionState === "break"
+      ? ((breakDuration - timeLeft) / breakDuration) * 100
+      : sessionState === "reset"
+        ? ((2 * 60 - resetCountdown) / (2 * 60)) * 100
+        : (focusDuration - timeLeft) / focusDuration * 100;
 
   const getTimeElapsed = () => {
     return focusDuration - timeLeft;
@@ -165,6 +251,9 @@ export default function FocusTab() {
     setTimeLeft(focusDuration);
     setDistractions([]);
     setCurrentSessionId(null);
+    setInterventionDismissed(false);
+    interventionShownLoggedRef.current = false;
+    setResetCountdown(0);
     pauseCountRef.current = 0;
     sessionStartTimeRef.current = null;
   };
@@ -252,9 +341,9 @@ export default function FocusTab() {
   const startBreak = useCallback(async () => {
     // Play notification sound repeatedly when focus session completes
     playNotificationSoundRepeating(notificationSound);
-    
+
     setSessionState("break");
-    setTimeLeft(BREAK_DURATION);
+    setTimeLeft(breakDuration);
     
     if (currentSessionId && userId) {
       await updateSession(currentSessionId, {
@@ -273,9 +362,9 @@ export default function FocusTab() {
 
       await logSessionEvent(currentSessionId, "break_started", {}, userId);
     }
-  }, [currentSessionId, userId, distractions.length, focusDuration, notificationSound]);
+  }, [currentSessionId, userId, distractions.length, focusDuration, breakDuration, notificationSound]);
 
-  // Timer effect
+  // Timer effect (focus and break countdown)
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
@@ -291,6 +380,7 @@ export default function FocusTab() {
                 logSessionEvent(currentSessionId, "break_completed", {}, userId);
               }
               setSessionState("idle");
+              setTimeLeft(focusDuration);
               return focusDuration;
             }
             return prev;
@@ -302,6 +392,21 @@ export default function FocusTab() {
 
     return () => clearInterval(interval);
   }, [sessionState, startBreak, currentSessionId, userId, focusDuration, notificationSound]);
+
+  // Reset countdown (2-minute reset during session)
+  useEffect(() => {
+    if (sessionState !== "reset" || resetCountdown <= 0) return;
+    const interval = setInterval(() => {
+      setResetCountdown((prev) => {
+        if (prev <= 1) {
+          setSessionState("focusing");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [sessionState, resetCountdown]);
 
   useEffect(() => {
     if (sessionState !== "focusing" || !currentSessionId || !userId) return;
@@ -329,6 +434,80 @@ export default function FocusTab() {
     if (userId) logSessionEvent(null, "timer_viewed", {}, userId);
   }, [userId]);
 
+  // Load agent notes when idle; refresh may create new notes from distraction patterns
+  useEffect(() => {
+    if (!userId || sessionState !== "idle") return;
+    const load = () => {
+      fetch("/api/agent/notes/refresh", { method: "POST" })
+        .then(() => fetch("/api/agent/notes"))
+        .then((r) => (r.ok ? r.json() : []))
+        .then((data) => setAgentNotes(Array.isArray(data) ? data : []))
+        .catch(() => {});
+    };
+    load();
+  }, [userId, sessionState]);
+
+  // Log once when intervention card is shown (so it appears in History with why)
+  useEffect(() => {
+    if (
+      !userId ||
+      (sessionState !== "focusing" && sessionState !== "paused") ||
+      distractions.length < 3 ||
+      interventionDismissed ||
+      interventionShownLoggedRef.current
+    )
+      return;
+    interventionShownLoggedRef.current = true;
+    fetch("/api/agent/activity-log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action_type: "agent_intervention_shown",
+        description: "Focus Agent offered to shorten session or take a 2-minute reset",
+        payload: {
+          why: `You had ${distractions.length} distractions in this session; the agent suggested shortening the session or taking a short reset to refocus.`,
+        },
+      }),
+    }).catch(() => {});
+  }, [userId, sessionState, distractions.length, interventionDismissed]);
+
+  const dismissNote = (id: string) => {
+    fetch(`/api/agent/notes/${id}/dismiss`, { method: "POST" }).then(() => {
+      setAgentNotes((prev) => prev.filter((n) => n.id !== id));
+    }).catch(() => {});
+  };
+
+  const applyCoachSuggestion = () => {
+    if (!sessionSuggestions) return;
+    const durSec = Math.max(60, Math.min(120 * 60, sessionSuggestions.suggestedDurationMinutes * 60));
+    const breakSec = Math.max(60, Math.min(30 * 60, (sessionSuggestions.suggestedBreakMinutes ?? 5) * 60));
+    setFocusDuration(durSec);
+    setTimeLeft(durSec);
+    setBreakDuration(breakSec);
+    setCoachSuggestionDismissed(true);
+    fetch("/api/agent/activity-log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action_type: "session_adjusted",
+        description: "User accepted coach suggestion",
+        payload: {
+          suggestedDurationMinutes: sessionSuggestions.suggestedDurationMinutes,
+          reason: sessionSuggestions.reason,
+        },
+      }),
+    }).catch(() => {});
+  };
+
+  const stickToDefault = () => {
+    if (!sessionSuggestions) return;
+    const defaultMin = sessionSuggestions.defaultFocusMinutes ?? 25;
+    const durSec = Math.max(60, Math.min(120 * 60, defaultMin * 60));
+    setFocusDuration(durSec);
+    setTimeLeft(durSec);
+    setCoachSuggestionDismissed(true);
+  };
+
   return (
     <>
       <div className="min-h-[calc(100vh-120px)] md:min-h-screen flex flex-col justify-center max-w-2xl mx-auto px-4 py-12 sm:py-20">
@@ -338,6 +517,7 @@ export default function FocusTab() {
             {sessionState === "idle" && "Ready to focus?"}
             {sessionState === "focusing" && "Deep work in progress"}
             {sessionState === "paused" && "Session paused"}
+            {sessionState === "reset" && "Short reset"}
             {sessionState === "break" && "Take a break ☕"}
             {sessionState === "abandoned" && "Session ended"}
           </h1>
@@ -345,10 +525,164 @@ export default function FocusTab() {
             {sessionState === "idle" && `Start a ${Math.floor(focusDuration / 60)}-minute focus session`}
             {sessionState === "focusing" && "Stay focused, you got this!"}
             {sessionState === "paused" && "Resume when you're ready"}
+            {sessionState === "reset" && `${Math.floor(resetCountdown / 60)}:${(resetCountdown % 60).toString().padStart(2, "0")} left in reset`}
             {sessionState === "break" && "You've earned it! Stretch, breathe."}
             {sessionState === "abandoned" && "It's okay. Every session teaches us something."}
           </p>
         </div>
+
+        {/* Agent Notes / Inbox (idle only) */}
+        {sessionState === "idle" && agentNotes.length > 0 && (
+          <div className="mb-6 space-y-4">
+            <h2 className="text-lg font-semibold text-foreground">Agent Notes</h2>
+            {agentNotes.map((note) => (
+              <AgentCard key={note.id} personality={coachPersonality}>
+                <h3 className="font-semibold text-foreground mb-1">{note.title}</h3>
+                <p className="text-sm text-muted mb-2">{note.body}</p>
+                {note.suggestion_text && (
+                  <p className="text-sm text-foreground mb-4">Suggested change: {note.suggestion_text}</p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => dismissNote(note.id)}
+                    className="btn-secondary text-sm py-2 px-4"
+                  >
+                    Try tomorrow
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => dismissNote(note.id)}
+                    className="text-sm text-muted hover:text-foreground py-2 px-4"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </AgentCard>
+            ))}
+          </div>
+        )}
+
+        {/* Agent: coach suggestion + Today's focus setup (idle only, one box) */}
+        {sessionState === "idle" && (
+          <AgentCard personality={coachPersonality} className="mb-6">
+            {sessionSuggestions &&
+              sessionSuggestions.sessionCountUsed != null &&
+              sessionSuggestions.sessionCountUsed >= 3 &&
+              sessionSuggestions.defaultFocusMinutes != null &&
+              sessionSuggestions.suggestedDurationMinutes !== sessionSuggestions.defaultFocusMinutes &&
+              !coachSuggestionDismissed && (
+              <>
+                <h3 className="font-semibold text-foreground mb-2">Coach suggestion</h3>
+                <p className="text-sm text-muted mb-4">
+                  Based on your last {sessionSuggestions.sessionCountUsed} sessions,{" "}
+                  <strong className="text-foreground">{sessionSuggestions.suggestedDurationMinutes} minutes</strong>{" "}
+                  works better for you lately.
+                </p>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  <button
+                    type="button"
+                    onClick={applyCoachSuggestion}
+                    className="btn-primary text-sm py-2 px-4"
+                  >
+                    Use suggestion
+                  </button>
+                  <button
+                    type="button"
+                    onClick={stickToDefault}
+                    className="btn-secondary text-sm py-2 px-4"
+                  >
+                    Stick to my default ({sessionSuggestions.defaultFocusMinutes} min)
+                  </button>
+                </div>
+                <div className="border-t border-gray-100 dark:border-gray-800 pt-4 mb-4" />
+              </>
+            )}
+            <h3 className="font-semibold text-foreground mb-3">Today&apos;s focus setup</h3>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-sm">
+                <Clock className="w-4 h-4 text-primary" />
+                {Math.floor(focusDuration / 60)} min
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-sm">
+                <Zap className="w-4 h-4 text-primary" />
+                {Math.floor(breakDuration / 60)} min break
+              </span>
+              {sessionRules.includes("phone_out_of_reach") && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-sm">
+                  <PhoneOff className="w-4 h-4 text-primary" />
+                  Phone out of reach
+                </span>
+              )}
+              {sessionRules.includes("single_task_only") && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-sm">
+                  <Target className="w-4 h-4 text-primary" />
+                  Single task only
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-muted flex items-center gap-2 flex-wrap">
+              <AgentBadge personality={coachPersonality} />
+              <span>Designed by your Focus Agent</span>
+            </p>
+            {coachSuggestionDismissed && sessionSuggestions?.reason != null && sessionSuggestions.reason !== "" && (
+              <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setShowWhyReason((v) => !v)}
+                  className="text-sm text-primary hover:underline flex items-center gap-1"
+                >
+                  Why this duration? {showWhyReason ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+                {showWhyReason && (
+                  <p className="mt-2 text-sm text-muted">{sessionSuggestions.reason}</p>
+                )}
+              </div>
+            )}
+            {/* Editable chips: duration and break open dropdowns; rules are toggles */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setShowDurationDropdown(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-600 text-sm hover:border-primary/40"
+              >
+                <Clock className="w-4 h-4" /> {Math.floor(focusDuration / 60)} min
+              </button>
+              <select
+                aria-label="Break length in minutes"
+                value={Math.floor(breakDuration / 60)}
+                onChange={(e) => setBreakMinutes(Number(e.target.value))}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-600 text-sm hover:border-primary/40 bg-transparent"
+              >
+                {[2, 5, 10, 15, 20, 30].map((m) => (
+                  <option key={m} value={m}>{m} min break</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => toggleSessionRule("phone_out_of_reach")}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 text-sm ${
+                  sessionRules.includes("phone_out_of_reach")
+                    ? "border-primary bg-primary/10"
+                    : "border-dashed border-gray-200 dark:border-gray-600 hover:border-primary/40"
+                }`}
+              >
+                <PhoneOff className="w-4 h-4" /> Phone out of reach
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleSessionRule("single_task_only")}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 text-sm ${
+                  sessionRules.includes("single_task_only")
+                    ? "border-primary bg-primary/10"
+                    : "border-dashed border-gray-200 dark:border-gray-600 hover:border-primary/40"
+                }`}
+              >
+                <Target className="w-4 h-4" /> Single task only
+              </button>
+            </div>
+          </AgentCard>
+        )}
 
         {/* Timer Card - overflow-visible so dropdowns aren't clipped */}
         <div className="card !p-8 sm:!p-12 text-center relative overflow-visible">
@@ -392,11 +726,13 @@ export default function FocusTab() {
               <span className={`text-4xl sm:text-5xl font-bold tracking-tight ${
                 sessionState === "focusing" ? "animate-number-pulse" : ""
               }`}>
-                {formatTime(timeLeft)}
+                {sessionState === "reset"
+                  ? formatTime(resetCountdown)
+                  : formatTime(timeLeft)}
               </span>
               {sessionState !== "idle" && sessionState !== "abandoned" && (
                 <span className="text-sm text-muted mt-2">
-                  {sessionState === "break" ? "break time" : "remaining"}
+                  {sessionState === "break" ? "break time" : sessionState === "reset" ? "reset" : "remaining"}
                 </span>
               )}
             </div>
@@ -656,6 +992,7 @@ export default function FocusTab() {
               {sessionState === "idle" && "🧠"}
               {sessionState === "focusing" && "💪"}
               {sessionState === "paused" && "⏸️"}
+              {sessionState === "reset" && "🔄"}
               {sessionState === "break" && "☕"}
               {sessionState === "abandoned" && "🤗"}
             </span>
@@ -663,6 +1000,7 @@ export default function FocusTab() {
               {sessionState === "idle" && "Your brain is ready to do great work!"}
               {sessionState === "focusing" && "Deep focus mode activated!"}
               {sessionState === "paused" && "Take your time, I'll wait."}
+              {sessionState === "reset" && "Back to focus in a moment."}
               {sessionState === "break" && "Rest is part of the process!"}
               {sessionState === "abandoned" && "Tomorrow is another chance!"}
             </span>
@@ -740,6 +1078,87 @@ export default function FocusTab() {
           </div>
         </div>
       )}
+
+      {/* Focus Agent intervention (slide-in from bottom when 3+ distractions) */}
+      {(sessionState === "focusing" || sessionState === "paused") &&
+        distractions.length >= 3 &&
+        !interventionDismissed && (
+          <div className="fixed bottom-0 left-0 right-0 z-40 p-3 sm:p-4 animate-in slide-in-from-bottom duration-300">
+            <AgentCard personality={coachPersonality} className="max-w-sm mx-auto shadow-float w-full">
+              <h3 className="font-semibold text-foreground text-sm sm:text-base mb-0.5">Focus Agent detected a pattern</h3>
+              <p className="text-xs sm:text-sm text-muted mb-3">
+                You&apos;ve logged {distractions.length} distractions in this session.
+              </p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <div className="flex gap-2 min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFocusDuration(15 * 60);
+                      setTimeLeft(15 * 60);
+                      setInterventionDismissed(true);
+                      if (currentSessionId && userId) {
+                        logSessionEvent(currentSessionId, "agent_intervention_shorten", { new_duration_minutes: 15 }, userId);
+                        fetch("/api/agent/activity-log", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            action_type: "session_shortened",
+                            description: "Shortened session to 15 min",
+                            payload: {
+                              new_duration_minutes: 15,
+                              why: "You had 3+ distractions in this session; shortening to 15 min helps you finish strong.",
+                            },
+                          }),
+                        }).catch(() => {});
+                      }
+                    }}
+                    className="btn-primary flex-1 min-w-0 text-xs sm:text-sm py-2 px-3 whitespace-nowrap rounded-full"
+                  >
+                    Shorten to 15 min
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSessionState("reset");
+                      setResetCountdown(2 * 60);
+                      setInterventionDismissed(true);
+                      if (currentSessionId && userId) {
+                        logSessionEvent(currentSessionId, "agent_intervention_reset", {}, userId);
+                        fetch("/api/agent/activity-log", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            action_type: "agent_intervention_reset",
+                            description: "Took a 2-minute reset during session",
+                            payload: {
+                              why: "You had 3+ distractions in this session; a short reset can help you refocus.",
+                            },
+                          }),
+                        }).catch(() => {});
+                      }
+                    }}
+                    className="btn-secondary flex-1 min-w-0 text-xs sm:text-sm py-2 px-3 whitespace-nowrap rounded-full"
+                  >
+                    2-min reset
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInterventionDismissed(true);
+                    if (currentSessionId && userId) {
+                      logSessionEvent(currentSessionId, "agent_intervention_ignore", {}, userId);
+                    }
+                  }}
+                  className="text-xs sm:text-sm text-muted hover:text-foreground py-1.5 sm:shrink-0 self-start sm:self-center"
+                >
+                  Ignore
+                </button>
+              </div>
+            </AgentCard>
+          </div>
+        )}
     </>
   );
 }

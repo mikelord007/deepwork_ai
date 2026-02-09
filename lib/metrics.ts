@@ -226,40 +226,53 @@ export async function getDailyStats(userId: string, days: number = 7): Promise<D
   return Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date));
 }
 
-// Fetch hourly patterns
-export async function getHourlyPatterns(userId: string): Promise<HourlyPattern[]> {
-  if (!isSupabaseConfigured() || !supabase) return [];
+// Build 24-hour placeholder (so chart always has bars and labels)
+function emptyHourlyPatterns(): HourlyPattern[] {
+  return Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    sessions: 0,
+    completionRate: 0,
+  }));
+}
+
+// Fetch hourly patterns for the last N days (always returns 24 hours 0–23 so the chart always renders).
+// Each bar = number of sessions that *started* in that hour (local time). Bar opacity = completion rate for that hour.
+export async function getHourlyPatterns(userId: string, days: number = 7): Promise<HourlyPattern[]> {
+  const empty = emptyHourlyPatterns();
+  if (!isSupabaseConfigured() || !supabase) return empty;
+
+  const startDate = new Date(Date.now() - days * 86400000).toISOString();
 
   const { data: sessions, error } = await supabase
     .from("focus_sessions")
     .select("started_at, status")
     .eq("user_id", userId)
+    .gte("started_at", startDate)
     .in("status", ["completed", "abandoned"]);
 
-  if (error || !sessions) {
+  if (error) {
     console.error("Failed to fetch hourly patterns:", error);
-    return [];
+    return empty;
   }
 
-  // Group by hour
   const byHour: Record<number, { total: number; completed: number }> = {};
-  
   for (let h = 0; h < 24; h++) {
     byHour[h] = { total: 0, completed: 0 };
   }
 
-  sessions.forEach((s) => {
+  (sessions ?? []).forEach((s) => {
     const hour = new Date(s.started_at).getHours();
     byHour[hour].total++;
     if (s.status === "completed") byHour[hour].completed++;
   });
 
-  return Object.entries(byHour).map(([hour, stats]) => ({
-    hour: parseInt(hour),
-    sessions: stats.total,
-    completionRate: stats.total > 0 
-      ? Math.round((stats.completed / stats.total) * 100) 
-      : 0,
+  return emptyHourlyPatterns().map(({ hour }) => ({
+    hour,
+    sessions: byHour[hour].total,
+    completionRate:
+      byHour[hour].total > 0
+        ? Math.round((byHour[hour].completed / byHour[hour].total) * 100)
+        : 0,
   }));
 }
 

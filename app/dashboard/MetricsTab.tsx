@@ -7,6 +7,7 @@ import {
   CheckCircle,
   Clock,
   Flame,
+  Info,
   RefreshCw,
   Target,
   TrendingUp,
@@ -102,7 +103,7 @@ export default function MetricsTab() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-120px)] md:min-h-screen flex flex-col justify-center max-w-6xl mx-auto px-4 py-8 sm:py-12">
+    <div className="min-h-[calc(100vh-120px)] md:min-h-screen flex flex-col justi max-w-6xl mx-auto px-4 py-8 sm:py-12">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Focus Metrics</h2>
@@ -199,12 +200,14 @@ export default function MetricsTab() {
           </div>
         </div>
       ) : metrics && metrics.totalSessions === 0 ? (
-        <div className="text-center py-20">
-          <div className="w-20 h-20 rounded-full bg-primary-light dark:bg-primary/20 flex items-center justify-center mx-auto mb-6">
-            <BarChart3 className="w-10 h-10 text-primary" />
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[50vh]">
+          <div className="text-center">
+            <div className="w-20 h-20 rounded-full bg-primary-light dark:bg-primary/20 flex items-center justify-center mx-auto mb-6">
+              <BarChart3 className="w-10 h-10 text-primary" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">No sessions yet</h3>
+            <p className="text-muted">Complete your first focus session in the Focus tab to see metrics here.</p>
           </div>
-          <h3 className="text-xl font-bold mb-2">No sessions yet</h3>
-          <p className="text-muted">Complete your first focus session in the Focus tab to see metrics here.</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -338,25 +341,39 @@ export default function MetricsTab() {
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-primary" />
                 <h3 className="font-semibold">Focus Patterns by Hour</h3>
+                <span
+                  className="text-muted hover:text-foreground cursor-help"
+                  title="Bar height = sessions started in that hour (last 7 days). Darker bars = higher completion rate; lighter bars = more abandoned."
+                  aria-label="Chart info"
+                >
+                  <Info className="w-4 h-4" />
+                </span>
               </div>
-              {peakHours.length > 0 && (
+              {peakHours.length > 0 ? (
                 <div className="text-sm text-muted">
                   Peak hours: {peakHours.map((h) => formatHour(h.hour)).join(", ")}
                 </div>
+              ) : (
+                <div className="text-sm text-muted">When you start sessions (last 7 days)</div>
               )}
             </div>
-            <div className="flex items-end gap-1 h-32">
+            <div className="flex gap-1 h-36">
               {hourlyPatterns.map((h) => (
-                <div key={h.hour} className="flex-1 flex flex-col items-center gap-1">
-                  <div
-                    className={`w-full rounded-t transition-all duration-300 ${h.sessions > 0 ? "bg-primary" : "bg-gray-100 dark:bg-gray-700"}`}
-                    style={{
-                      height: `${Math.max((h.sessions / maxHourlySessions) * 100, h.sessions > 0 ? 10 : 5)}%`,
-                      opacity: h.sessions > 0 ? 0.3 + (h.completionRate / 100) * 0.7 : 0.3,
-                    }}
-                    title={`${formatHour(h.hour)}: ${h.sessions} sessions, ${h.completionRate}% completed`}
-                  />
-                  {h.hour % 3 === 0 && <span className="text-[10px] text-muted">{formatHour(h.hour)}</span>}
+                <div key={h.hour} className="flex-1 min-w-0 h-full flex flex-col items-center">
+                  <div className="flex-1 min-h-0 w-full flex flex-col justify-end">
+                    <div
+                      className={`w-full rounded-t transition-all duration-300 ${h.sessions > 0 ? "bg-primary" : "bg-gray-100 dark:bg-gray-700"}`}
+                      style={{
+                        height: `${Math.max((h.sessions / maxHourlySessions) * 100, h.sessions > 0 ? 10 : 5)}%`,
+                        minHeight: h.sessions > 0 ? "4px" : "2px",
+                        opacity: h.sessions > 0 ? 0.3 + (h.completionRate / 100) * 0.7 : 0.3,
+                      }}
+                      title={`${formatHour(h.hour)}: ${h.sessions} sessions, ${h.completionRate}% completed`}
+                    />
+                  </div>
+                  <div className="h-4 shrink-0 flex items-center justify-center mt-1">
+                    {h.hour % 3 === 0 ? <span className="text-[10px] text-muted">{formatHour(h.hour)}</span> : null}
+                  </div>
                 </div>
               ))}
             </div>

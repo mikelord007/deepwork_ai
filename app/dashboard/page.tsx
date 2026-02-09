@@ -4,8 +4,10 @@ import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   BarChart3,
+  Calendar,
   ChevronLeft,
   ChevronRight,
+  History,
   MessageCircle,
   Settings,
   Zap,
@@ -13,14 +15,18 @@ import {
 import CoachTab from "./CoachTab";
 import FocusTab from "./FocusTab";
 import MetricsTab from "./MetricsTab";
+import WeeklyTab from "./WeeklyTab";
+import HistoryTab from "./HistoryTab";
 import SettingsPanel from "../components/SettingsPanel";
 
-type TabId = "coach" | "focus" | "metrics";
+type TabId = "coach" | "focus" | "metrics" | "weekly" | "history";
 
 const NAV_ITEMS: { id: TabId; label: string; icon: typeof MessageCircle }[] = [
-  { id: "coach", label: "Coach", icon: MessageCircle },
+  { id: "coach", label: "Agent", icon: MessageCircle },
   { id: "focus", label: "Focus", icon: Zap },
   { id: "metrics", label: "Metrics", icon: BarChart3 },
+  { id: "weekly", label: "Weekly", icon: Calendar },
+  { id: "history", label: "History", icon: History },
 ];
 
 function DashboardContent() {
@@ -210,6 +216,8 @@ function DashboardContent() {
           {activeTab === "coach" && <CoachTab />}
           {activeTab === "focus" && <FocusTab />}
           {activeTab === "metrics" && <MetricsTab />}
+          {activeTab === "weekly" && <WeeklyTab />}
+          {activeTab === "history" && <HistoryTab />}
         </div>
       </main>
 

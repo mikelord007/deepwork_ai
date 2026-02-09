@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { LogOut, Moon, Sun, Monitor, X } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth-context";
+import { getAgentDisplayName } from "@/lib/agent";
 
 type CoachPersonalityValue = "strict" | "data_focused" | "encouraging";
 
-const COACH_OPTIONS: { value: CoachPersonalityValue; label: string }[] = [
+const AGENT_PERSONALITY_OPTIONS: { value: CoachPersonalityValue; label: string }[] = [
   { value: "strict", label: "Strict" },
   { value: "data_focused", label: "Data-focused" },
   { value: "encouraging", label: "Encouraging" },
@@ -29,7 +30,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     fetch("/api/user/preferences")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data?.coach_personality && COACH_OPTIONS.some((o) => o.value === data.coach_personality)) {
+        if (data?.coach_personality && AGENT_PERSONALITY_OPTIONS.some((o) => o.value === data.coach_personality)) {
           setCoachPersonality(data.coach_personality);
         } else {
           setCoachPersonality("data_focused");
@@ -40,10 +41,24 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   const handleCoachPersonalityChange = (value: CoachPersonalityValue) => {
     setCoachPersonality(value);
+    const agentName = getAgentDisplayName(value);
     fetch("/api/user/preferences", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ coach_personality: value }),
+    }).catch(() => {});
+    fetch("/api/agent/activity-log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action_type: "agent_personality_changed",
+        description: `Switched Focus Agent to ${agentName}`,
+        payload: {
+          personality: value,
+          agent_name: agentName,
+          why: "Changed in Settings.",
+        },
+      }),
     }).catch(() => {});
   };
 
@@ -143,14 +158,17 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </div>
         </div>
 
-        {/* Coach personality */}
+        {/* Agent personality */}
         <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
           <label className="text-sm font-medium text-muted mb-3 block">
-            Coach personality
+            Agent personality
           </label>
+          {coachPersonality && (
+            <p className="text-xs text-muted mb-2">Your agent: <span className="font-medium text-foreground">{getAgentDisplayName(coachPersonality)}</span></p>
+          )}
           <p className="text-xs text-muted mb-3">You can change this anytime.</p>
           <div className="grid grid-cols-3 gap-2">
-            {COACH_OPTIONS.map((option) => {
+            {AGENT_PERSONALITY_OPTIONS.map((option) => {
               const isActive = coachPersonality === option.value;
               return (
                 <button

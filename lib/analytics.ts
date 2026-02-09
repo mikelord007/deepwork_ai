@@ -18,7 +18,10 @@ export type SessionEventType =
   | "page_focused"
   | "page_blurred"
   | "theme_changed"
-  | "sound_toggled";
+  | "sound_toggled"
+  | "agent_intervention_shorten"
+  | "agent_intervention_reset"
+  | "agent_intervention_ignore";
 
 export interface SessionEventData {
   distraction_type?: string;

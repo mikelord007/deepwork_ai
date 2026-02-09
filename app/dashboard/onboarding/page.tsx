@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { getAgentDisplayName } from "@/lib/agent";
 
 const STEPS = [
   { id: 1, title: "When you fall off track, what helps more?" },
@@ -13,10 +14,26 @@ const STEPS = [
   { id: 6, title: "If this app works perfectly, what would change for you?" },
 ] as const;
 
-const COACH_OPTIONS: { value: "strict" | "data_focused" | "encouraging"; label: string }[] = [
-  { value: "strict", label: "Call me out. Don't sugarcoat." },
-  { value: "data_focused", label: "Show me the data." },
-  { value: "encouraging", label: "Encourage me and help me reset." },
+const COACH_OPTIONS: {
+  value: "strict" | "data_focused" | "encouraging";
+  label: string;
+  info: string;
+}[] = [
+  {
+    value: "strict",
+    label: "Call me out. Don't sugarcoat.",
+    info: "You'll be asigned Alex. He is direct and accountability-first. Think David Goggins. He'll challenge you when you slip and keep you on track with no sugarcoating. Best if you respond well to tough love.",
+  },
+  {
+    value: "data_focused",
+    label: "Show me the data.",
+    info: "You'll be paired with Morgan. She leads with numbers and patterns. She'll show you trends, completion rates, and best focus windows, and give data-grounded advice. Best if you like metrics and clear evidence.",
+  },
+  {
+    value: "encouraging",
+    label: "Encourage me and help me reset.",
+    info: "We'll set you up with Sam. He is supportive and gentle. He will celebrate progress, reframe setbacks as learning, and help you reset without guilt. Best if you prefer warmth and motivation.",
+  },
 ];
 
 const FOCUS_DOMAIN_OPTIONS: { value: string; label: string }[] = [
@@ -92,6 +109,7 @@ export default function OnboardingPage() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [infoOpen, setInfoOpen] = useState<"strict" | "data_focused" | "encouraging" | null>(null);
 
   const toggleArray = useCallback(
     (key: "focus_domains" | "distraction_triggers" | "success_goals", value: string, max?: number) => {
@@ -130,6 +148,20 @@ export default function OnboardingPage() {
         setSubmitting(false);
         return;
       }
+      const agentName = getAgentDisplayName(form.coach_personality);
+      await fetch("/api/agent/activity-log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action_type: "agent_personality_chosen",
+          description: `Chose ${agentName} as your Focus Agent`,
+          payload: {
+            personality: form.coach_personality,
+            agent_name: agentName,
+            why: "Selected during onboarding.",
+          },
+        }),
+      }).catch(() => {});
       router.replace("/dashboard?tab=coach");
     } catch {
       setError("Something went wrong");
@@ -192,23 +224,44 @@ export default function OnboardingPage() {
           </>
         )}
 
-        {/* Step 1: Coach personality */}
+        {/* Step 1: Agent personality */}
         {step === 1 && (
           <div className="space-y-3 mt-6">
-            <p className="text-sm text-muted mb-4">We&apos;ll use this to pick your coach personality so the tone fits what helps you most.</p>
+            <p className="text-sm text-muted mb-4">We&apos;ll use this to pick your Focus Agent personality so the tone fits what helps you most.</p>
             {COACH_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setForm((p) => ({ ...p, coach_personality: opt.value }))}
-                className={`w-full text-left rounded-2xl border-2 px-4 py-3 transition-all ${
-                  form.coach_personality === opt.value
-                    ? "border-primary bg-primary-light dark:bg-primary/20"
-                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-900"
-                }`}
-              >
-                <span className="text-sm font-medium text-foreground">{opt.label}</span>
-              </button>
+              <div key={opt.value} className="space-y-1">
+                <div
+                  className={`flex items-center gap-2 w-full text-left rounded-2xl border-2 px-4 py-3 transition-all ${
+                    form.coach_personality === opt.value
+                      ? "border-primary bg-primary-light dark:bg-primary/20"
+                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-900"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setForm((p) => ({ ...p, coach_personality: opt.value }))}
+                    className="flex-1 text-left"
+                  >
+                    <span className="text-sm font-medium text-foreground">{opt.label}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setInfoOpen(infoOpen === opt.value ? null : opt.value);
+                    }}
+                    className="p-1.5 rounded-full text-muted hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    aria-label={`More about ${getAgentDisplayName(opt.value)}`}
+                  >
+                    <Info className="w-4 h-4" />
+                  </button>
+                </div>
+                {infoOpen === opt.value && (
+                  <div className="rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/20 px-4 py-3 text-sm text-muted">
+                    <p>{opt.info}</p>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         )}

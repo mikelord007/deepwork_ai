@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, Mic, Send, Info } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { getAgentDisplayName } from "@/lib/agent";
+import type { CoachPersonality } from "@/lib/coach-prompts";
 
 const PROMPT_SUGGESTIONS = [
   "What are my main distraction patterns this week?",
@@ -69,6 +71,7 @@ export default function CoachTab() {
   const [showMicPermissionPrompt, setShowMicPermissionPrompt] = useState(false);
   const [micPermissionDenied, setMicPermissionDenied] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
+  const [coachPersonality, setCoachPersonality] = useState<CoachPersonality | null>(null);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const baseInputRef = useRef("");
   const hasMicPermissionBeenGrantedRef = useRef(false);
@@ -78,7 +81,21 @@ export default function CoachTab() {
     if (!userId) return;
     fetch("/api/user/status")
       .then((r) => (r.ok ? r.json() : null))
-      .then((data) => data?.isNewUser === true && setIsNewUser(true))
+      .then((data) => {
+        if (data?.isNewUser === true) setIsNewUser(true);
+      })
+      .catch(() => {});
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetch("/api/user/preferences")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.coach_personality && ["strict", "data_focused", "encouraging"].includes(data.coach_personality)) {
+          setCoachPersonality(data.coach_personality as CoachPersonality);
+        }
+      })
       .catch(() => {});
   }, [userId]);
 
@@ -245,13 +262,15 @@ export default function CoachTab() {
           ? "hidden md:block py-4 border-b border-gray-100 dark:border-gray-800" 
           : "mb-8"
       }>
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-primary-light dark:bg-primary/20 flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary-light dark:bg-primary/20 flex items-center justify-center flex-shrink-0">
             <MessageCircle className="w-5 h-5 text-primary" />
           </div>
-          <div>
-            <h2 className="text-xl font-bold tracking-tight">Focus Coach</h2>
-            <p className="text-sm text-muted">Ask about your sessions, patterns, and get insights</p>
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold tracking-tight">
+              {coachPersonality ? `${getAgentDisplayName(coachPersonality)} – Your Focus Agent` : "Your Focus Agent"}
+            </h2>
+            <p className="text-sm text-muted mt-0.5">Ask about your sessions, patterns, and get insights</p>
           </div>
         </div>
       </div>
@@ -261,7 +280,7 @@ export default function CoachTab() {
         <div className="mb-4 rounded-2xl border border-primary/20 bg-primary-light dark:bg-primary/10 dark:border-primary/30 px-4 py-3 flex gap-3">
           <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" aria-hidden />
           <p className="text-sm text-foreground">
-            Use the app more, log more work sessions, so the coach can learn about you. Meanwhile, you can ask the coach for general focus tips and advice.
+            Use the app more, log more work sessions, so your Focus Agent can learn about you. Meanwhile, you can ask for general focus tips and advice.
           </p>
         </div>
       )}

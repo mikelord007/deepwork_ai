@@ -1,0 +1,19 @@
+{
+  "name": "deepwork.ai – Data-driven focus coach",
+  "short_name": "deepwork.ai",
+  "description": "AI focus coach that understands how your mind works and gives personalized guidance.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAFAFA",
+  "theme_color": "#7C6AFF",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

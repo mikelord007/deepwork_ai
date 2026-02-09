@@ -101,9 +101,10 @@ function DashboardContent() {
             </button>
           </div>
 
-          {/* Pill/Segment Tabs */}
+          {/* Pill/Segment Tabs — box stays fixed, tabs scroll left/right inside it */}
           <div className="px-4 pb-3">
-            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+            <div className="overflow-x-auto overflow-y-hidden rounded-xl bg-gray-100 dark:bg-gray-800 p-1 scrollbar-thin">
+              <div className="flex flex-nowrap gap-0 w-max">
               {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -111,7 +112,7 @@ function DashboardContent() {
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                    className={`flex-shrink-0 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
                       isActive
                         ? "bg-white dark:bg-gray-700 text-foreground shadow-sm"
                         : "text-muted"
@@ -122,6 +123,7 @@ function DashboardContent() {
                   </button>
                 );
               })}
+              </div>
             </div>
           </div>
         </header>

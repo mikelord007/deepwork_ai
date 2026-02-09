@@ -143,12 +143,17 @@ export default function HomePage() {
                   Login
                   <ArrowRight className="w-4 h-4" />
                 </a>
-                <button className="inline-flex items-center gap-2 text-muted hover:text-foreground transition-colors">
+                <a
+                  href="https://www.tella.tv/video/deepwork-ai-your-personal-focus-coach-3ls4"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-muted hover:text-foreground transition-colors"
+                >
                   <div className="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center">
                     <Play className="w-4 h-4 text-primary fill-primary" />
                   </div>
                   <span className="text-sm font-medium">Watch demo</span>
-                </button>
+                </a>
               </div>
 
               {/* Stats */}
